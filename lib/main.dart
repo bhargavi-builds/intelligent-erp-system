@@ -3918,184 +3918,165 @@ class _ParentDashboardState
                   ),
                 )
 
-              : SingleChildScrollView(
-                  padding:
-                      const EdgeInsets.all(20),
-
-                  child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-
-                    children: [
-                      Text(
-                        'Welcome, $parentName',
-                        style:
-                            const TextStyle(
-                          fontSize: 26,
-                          fontWeight:
-                              FontWeight.bold,
-                        ),
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      Text(
-                        'Student: $studentName ($studentId)',
-                        style:
-                            const TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
-                        ),
-                      ),
-
-                      const SizedBox(height: 30),
-
-                      // ATTENDANCE + ASSIGNMENTS
-                      Row(
+              : Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1000),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child:
-                                DashboardCard(
-                              icon:
-                                  Icons.calendar_month,
-                              title:
-                                  'Attendance',
-                              value:
-                                  '$attendance%',
+                          Text(
+                            'Welcome, $parentName',
+                            style: const TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-
-                          const SizedBox(
-                              width: 12),
-
-                          Expanded(
-                            child:
-                                DashboardCard(
-                              icon:
-                                  Icons.assignment,
-                              title:
-                                  'Assignments',
-                              value:
-                                  '$assignmentsPending Pending',
+                          const SizedBox(height: 8),
+                          Text(
+                            'Student: $studentName ($studentId)',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
                             ),
                           ),
-                        ],
-                      ),
+                          const SizedBox(height: 28),
 
-                      const SizedBox(height: 16),
-
-                      // EXAMINATIONS + ANNOUNCEMENTS
-                      Row(
-                        children: [
-                          Expanded(
-                            child:
-                                DashboardCard(
-                              icon:
-                                  Icons.event,
-                              title:
-                                  'Examinations',
-                              value:
-                                  '$upcomingExams Upcoming',
-                            ),
-                          ),
-
-                          const SizedBox(
-                              width: 12),
-
-                          Expanded(
-                            child:
-                                DashboardCard(
-                              icon:
-                                  Icons.notifications,
-                              title:
-                                  'Announcements',
-                              value:
-                                  '$newAnnouncements New',
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // FEE REMINDER CARD
-                      DashboardCard(
-                        icon: Icons.payment,
-                        title:
-                            'Fee Reminder',
-                        value:
-                            feeReminder,
-                      ),
-
-                      const SizedBox(height: 30),
-
-                      // VIEW FEE DETAILS BUTTON
-                      SizedBox(
-                        width: double.infinity,
-                        child:
-                            ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) =>
-                                        const ParentFeeDetailsScreen(),
+                          // ATTENDANCE + ASSIGNMENTS
+                          Row(
+                            children: [
+                              Expanded(
+                                child: DashboardCard(
+                                  icon: Icons.calendar_month,
+                                  title: 'Attendance',
+                                  value: '$attendance%',
+                                ),
                               ),
-                            );
-                          },
-                          icon: const Icon(
-                            Icons.payment,
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: DashboardCard(
+                                  icon: Icons.assignment,
+                                  title: 'Assignments',
+                                  value: '$assignmentsPending Pending',
+                                ),
+                              ),
+                            ],
                           ),
-                          label: const Text(
-                            'View Fee Details',
+
+                          const SizedBox(height: 16),
+
+                          // EXAMINATIONS + ANNOUNCEMENTS
+                          Row(
+                            children: [
+                              Expanded(
+                                child: DashboardCard(
+                                  icon: Icons.event,
+                                  title: 'Examinations',
+                                  value: '$upcomingExams Upcoming',
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: DashboardCard(
+                                  icon: Icons.notifications,
+                                  title: 'Announcements',
+                                  value: '$newAnnouncements New',
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+
+                          const SizedBox(height: 16),
+
+                          // FEE REMINDER CARD
+                          SizedBox(
+                            width: double.infinity,
+                            child: DashboardCard(
+                              icon: Icons.payment,
+                              title: 'Fee Reminder',
+                              value: feeReminder,
+                            ),
+                          ),
+
+                          const SizedBox(height: 28),
+
+                          // ACTION BUTTONS
+                          Row(
+                            children: [
+                              Expanded(
+                                child: SizedBox(
+                                  height: 48,
+                                  child: ElevatedButton.icon(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const ParentFeeDetailsScreen(),
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.payment),
+                                    label: const Text(
+                                      'View Fee Details',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue.shade700,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: SizedBox(
+                                  height: 48,
+                                  child: OutlinedButton.icon(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const AnnouncementsScreen(),
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.notifications_outlined),
+                                    label: const Text(
+                                      'View Announcements',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // REFRESH BUTTON
+                          SizedBox(
+                            width: double.infinity,
+                            height: 44,
+                            child: TextButton.icon(
+                              onPressed: fetchParentData,
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Refresh Dashboard Data'),
+                            ),
+                          ),
+                        ],
                       ),
-
-                      const SizedBox(height: 12),
-
-
-                      // VIEW ANNOUNCEMENTS BUTTON
-SizedBox(
-  width: double.infinity,
-  child: ElevatedButton.icon(
-    onPressed: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              const AnnouncementsScreen(),
-        ),
-      );
-    },
-    icon: const Icon(
-      Icons.notifications,
-    ),
-    label: const Text(
-      'View Announcements',
-    ),
-  ),
-),
-
-const SizedBox(height: 12),
-
-                      // REFRESH BUTTON
-                      SizedBox(
-                        width: double.infinity,
-                        child:
-                            ElevatedButton.icon(
-                          onPressed:
-                              fetchParentData,
-                          icon: const Icon(
-                            Icons.refresh,
-                          ),
-                          label: const Text(
-                            'Refresh Data',
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
     );
@@ -4494,12 +4475,16 @@ class _ParentFeeDetailsScreenState
   bool isLoading = true;
   String errorMessage = '';
 
-  String studentName = '';
-  int totalFee = 0;
-  int paidFee = 0;
-  int pendingFee = 0;
-  String dueDate = '';
-  String status = '';
+  String studentName = 'Bhargavi';
+  String studentId = '22K91A0501';
+  String department = 'CSE - 4th Year';
+  String academicYear = '2025 - 2026';
+  int totalFee = 117500;
+  int paidFee = 92500;
+  int pendingFee = 25000;
+  String dueDate = '30 August 2026';
+  String status = 'Pending';
+  List<Map<String, dynamic>> breakdown = [];
 
   @override
   void initState() {
@@ -4507,28 +4492,104 @@ class _ParentFeeDetailsScreenState
     fetchFeeData();
   }
 
+  String _formatRupees(num amount) {
+    int intVal = amount.round();
+    String str = intVal.toString();
+    if (str.length <= 3) return str;
+    String lastThree = str.substring(str.length - 3);
+    String otherNumbers = str.substring(0, str.length - 3);
+    final buffer = StringBuffer();
+    for (int i = 0; i < otherNumbers.length; i++) {
+      if ((otherNumbers.length - i) % 2 == 0 && i != 0) {
+        buffer.write(',');
+      }
+      buffer.write(otherNumbers[i]);
+    }
+    buffer.write(',');
+    buffer.write(lastThree);
+    return buffer.toString();
+  }
+
   Future<void> fetchFeeData() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+    });
+
     try {
       final response = await http.get(
         Uri.parse('${ApiConfig.baseUrl}/api/parent/fees'),
       );
+
+      if (!mounted) return;
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
         setState(() {
           studentName = data['studentName']?.toString() ?? 'Bhargavi';
+          studentId = data['studentId']?.toString() ?? '22K91A0501';
+          department = data['department']?.toString() ?? 'CSE - 4th Year';
+          academicYear = data['academicYear']?.toString() ?? '2025 - 2026';
+
           totalFee = (data['totalFee'] is num)
               ? (data['totalFee'] as num).toInt()
               : int.tryParse(data['totalFee']?.toString() ?? '') ?? 117500;
+
           paidFee = (data['paidFee'] is num)
               ? (data['paidFee'] as num).toInt()
               : int.tryParse(data['paidFee']?.toString() ?? '') ?? 92500;
+
           pendingFee = (data['pendingFee'] is num)
               ? (data['pendingFee'] as num).toInt()
               : int.tryParse(data['pendingFee']?.toString() ?? '') ?? 25000;
+
           dueDate = data['dueDate']?.toString() ?? '30 August 2026';
-          status = data['status']?.toString() ?? 'Pending';
+          status = data['status']?.toString() ?? (pendingFee > 0 ? 'Pending' : 'Paid');
+
+          if (data['breakdown'] is List) {
+            breakdown = List<Map<String, dynamic>>.from(
+              (data['breakdown'] as List).map(
+                (item) => Map<String, dynamic>.from(item as Map),
+              ),
+            );
+          } else {
+            breakdown = [
+              {
+                "feeType": "Academic Tuition Fee",
+                "totalAmount": 85000,
+                "paidAmount": 60000,
+                "dueAmount": 25000,
+                "dueDate": "30 August 2026",
+                "status": "Pending"
+              },
+              {
+                "feeType": "College Bus Transport",
+                "totalAmount": 25000,
+                "paidAmount": 25000,
+                "dueAmount": 0,
+                "dueDate": "15 July 2026",
+                "status": "Paid"
+              },
+              {
+                "feeType": "Examination Fee",
+                "totalAmount": 2500,
+                "paidAmount": 2500,
+                "dueAmount": 0,
+                "dueDate": "10 August 2026",
+                "status": "Paid"
+              },
+              {
+                "feeType": "Library & Lab Deposit",
+                "totalAmount": 5000,
+                "paidAmount": 5000,
+                "dueAmount": 0,
+                "dueDate": "01 June 2026",
+                "status": "Paid"
+              }
+            ];
+          }
+
           isLoading = false;
           errorMessage = '';
         });
@@ -4539,6 +4600,7 @@ class _ParentFeeDetailsScreenState
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         errorMessage = 'Backend connection failed';
         isLoading = false;
@@ -4546,11 +4608,1003 @@ class _ParentFeeDetailsScreenState
     }
   }
 
+  void _showPaymentModal(BuildContext context, {int? specificAmount, String? feeType}) {
+    final payAmount = specificAmount ?? pendingFee;
+    if (payAmount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No pending fees to pay! All dues cleared.')),
+      );
+      return;
+    }
+
+    String selectedMethod = 'UPI';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return SafeArea(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: 24,
+                      left: 24,
+                      right: 24,
+                      bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade50,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(Icons.account_balance, color: Colors.blue),
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'HITAM Payment Gateway',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      feeType ?? 'Semester Academic Dues',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () => Navigator.pop(ctx),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.blue.shade200),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Student: $studentName',
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    'Roll No: $studentId | $department',
+                                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                '₹${_formatRupees(payAmount)}',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Select Payment Method',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        const SizedBox(height: 10),
+                        RadioListTile<String>(
+                          value: 'UPI',
+                          groupValue: selectedMethod,
+                          onChanged: (val) => setModalState(() => selectedMethod = val!),
+                          title: const Text('UPI (Google Pay, PhonePe, Paytm, BHIM)'),
+                          secondary: const Icon(Icons.qr_code_2, color: Colors.deepPurple),
+                        ),
+                        RadioListTile<String>(
+                          value: 'NetBanking',
+                          groupValue: selectedMethod,
+                          onChanged: (val) => setModalState(() => selectedMethod = val!),
+                          title: const Text('Net Banking (SBI, HDFC, ICICI, Axis)'),
+                          secondary: const Icon(Icons.account_balance, color: Colors.blue),
+                        ),
+                        RadioListTile<String>(
+                          value: 'Cards',
+                          groupValue: selectedMethod,
+                          onChanged: (val) => setModalState(() => selectedMethod = val!),
+                          title: const Text('Debit / Credit Card'),
+                          secondary: const Icon(Icons.credit_card, color: Colors.teal),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.lock),
+                            label: Text(
+                              'Pay ₹${_formatRupees(payAmount)} Securely',
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green.shade700,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              _processPayment(payAmount, feeType);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _processPayment(int amountPaid, String? feeType) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(28.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Connecting to Bank Gateway...', style: TextStyle(fontWeight: FontWeight.bold)),
+                SizedBox(height: 6),
+                Text('Please do not close this window', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Future.delayed(const Duration(milliseconds: 1400), () {
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading dialog
+
+      setState(() {
+        paidFee += amountPaid;
+        pendingFee = (pendingFee - amountPaid).clamp(0, totalFee);
+        status = pendingFee == 0 ? 'Paid' : 'Pending';
+
+        if (feeType != null) {
+          for (var item in breakdown) {
+            if (item['feeType'] == feeType) {
+              item['paidAmount'] = ((item['paidAmount'] as num?) ?? 0) + amountPaid;
+              item['dueAmount'] = 0;
+              item['status'] = 'Paid';
+            }
+          }
+        } else {
+          for (var item in breakdown) {
+            item['paidAmount'] = item['totalAmount'];
+            item['dueAmount'] = 0;
+            item['status'] = 'Paid';
+          }
+        }
+      });
+
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          icon: const Icon(Icons.check_circle, color: Colors.green, size: 60),
+          title: const Text('Payment Successful!'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Amount Paid: ₹${_formatRupees(amountPaid)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              const Text('Transaction ID: HITAM-TXN-2026-98124'),
+              const SizedBox(height: 4),
+              Text('Student: $studentName ($studentId)'),
+              const SizedBox(height: 4),
+              const Text('Status: Verified by Accounts Section'),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.verified, color: Colors.green, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'E-receipt has been sent to parent email & college portal.',
+                        style: TextStyle(fontSize: 12, color: Colors.green),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Done'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showReceiptDialog(context);
+              },
+              icon: const Icon(Icons.receipt),
+              label: const Text('View Receipt'),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  void _showReceiptDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.school, size: 28, color: Colors.blue),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'HITAM HYDERABAD',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            Text(
+                              'Autonomous Fee Receipt',
+                              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const Divider(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Receipt No: HITAM/FEE/2026/08492', style: TextStyle(fontSize: 13, color: Colors.grey.shade800, fontWeight: FontWeight.bold)),
+                    const Text('Date: 15 Sep 2026', style: TextStyle(fontSize: 13, color: Colors.grey)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Student: $studentName', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text('Roll No: $studentId | Dept: $department'),
+                      const SizedBox(height: 4),
+                      Text('Academic Year: $academicYear'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Payment Summary:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Total Academic Dues:'),
+                    Text('₹${_formatRupees(totalFee)}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Amount Paid:'),
+                    Text('₹${_formatRupees(paidFee)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Balance Remaining:'),
+                    Text('₹${_formatRupees(pendingFee)}', style: TextStyle(fontWeight: FontWeight.bold, color: pendingFee > 0 ? Colors.orange.shade800 : Colors.green)),
+                  ],
+                ),
+                const Divider(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Fee Receipt PDF downloaded to local storage.')),
+                        );
+                      },
+                      icon: const Icon(Icons.download),
+                      label: const Text('Download PDF'),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStudentHeroCard() {
+    final bool isDue = pendingFee > 0;
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 30,
+              backgroundColor: Colors.blue.shade100,
+              child: const Icon(Icons.school, size: 32, color: Colors.blue),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    studentName,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: Text(
+                          'Roll: $studentId',
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade800, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.blue.shade200),
+                        ),
+                        child: Text(
+                          department,
+                          style: TextStyle(fontSize: 12, color: Colors.blue.shade800, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.purple.shade50,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.purple.shade200),
+                        ),
+                        child: Text(
+                          'AY: $academicYear',
+                          style: TextStyle(fontSize: 12, color: Colors.purple.shade800, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: isDue ? Colors.amber.shade50 : Colors.green.shade50,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: isDue ? Colors.amber.shade300 : Colors.green.shade300),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isDue ? Icons.schedule : Icons.check_circle,
+                    size: 16,
+                    color: isDue ? Colors.orange.shade800 : Colors.green.shade800,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    isDue ? 'Due: ₹${_formatRupees(pendingFee)}' : 'All Cleared',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: isDue ? Colors.orange.shade900 : Colors.green.shade900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgressCard(double percentage, double progress) {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: Padding(
+        padding: const EdgeInsets.all(18.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.pie_chart_outline, size: 20, color: Colors.teal.shade700),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Fee Clearance Progress',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ],
+                ),
+                Text(
+                  '${percentage.toStringAsFixed(1)}% Settled',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.teal.shade800,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 12,
+                backgroundColor: Colors.grey.shade200,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  percentage >= 100 ? Colors.green.shade600 : Colors.teal.shade600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Paid ₹${_formatRupees(paidFee)} of ₹${_formatRupees(totalFee)}',
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                ),
+                Text(
+                  pendingFee > 0 ? 'Remaining ₹${_formatRupees(pendingFee)} due by $dueDate' : 'All semester fees cleared',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: pendingFee > 0 ? Colors.orange.shade800 : Colors.green.shade800,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildKpiCard({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String value,
+    required String subtitle,
+  }) {
+    return Expanded(
+      child: Card(
+        elevation: 1,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, color: color, size: 24),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildKpiSection() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isDesktop = constraints.maxWidth >= 720;
+        if (isDesktop) {
+          return Row(
+            children: [
+              _buildKpiCard(
+                icon: Icons.account_balance_wallet_outlined,
+                color: Colors.blue.shade700,
+                title: 'Total Academic Fee',
+                value: '₹${_formatRupees(totalFee)}',
+                subtitle: 'Annual AY 2025-2026',
+              ),
+              const SizedBox(width: 12),
+              _buildKpiCard(
+                icon: Icons.check_circle_outline,
+                color: Colors.green.shade700,
+                title: 'Total Amount Paid',
+                value: '₹${_formatRupees(paidFee)}',
+                subtitle: 'Verified Receipts',
+              ),
+              const SizedBox(width: 12),
+              _buildKpiCard(
+                icon: Icons.pending_actions_outlined,
+                color: Colors.orange.shade800,
+                title: 'Pending Balance',
+                value: '₹${_formatRupees(pendingFee)}',
+                subtitle: 'Due by $dueDate',
+              ),
+              const SizedBox(width: 12),
+              _buildKpiCard(
+                icon: Icons.verified_outlined,
+                color: Colors.purple.shade700,
+                title: 'Account Status',
+                value: status,
+                subtitle: 'Online / NetBanking',
+              ),
+            ],
+          );
+        } else {
+          return Column(
+            children: [
+              Row(
+                children: [
+                  _buildKpiCard(
+                    icon: Icons.account_balance_wallet_outlined,
+                    color: Colors.blue.shade700,
+                    title: 'Total Fee',
+                    value: '₹${_formatRupees(totalFee)}',
+                    subtitle: 'Annual Fee',
+                  ),
+                  const SizedBox(width: 12),
+                  _buildKpiCard(
+                    icon: Icons.check_circle_outline,
+                    color: Colors.green.shade700,
+                    title: 'Paid Fee',
+                    value: '₹${_formatRupees(paidFee)}',
+                    subtitle: 'Verified',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  _buildKpiCard(
+                    icon: Icons.pending_actions_outlined,
+                    color: Colors.orange.shade800,
+                    title: 'Pending Balance',
+                    value: '₹${_formatRupees(pendingFee)}',
+                    subtitle: 'Due: $dueDate',
+                  ),
+                  const SizedBox(width: 12),
+                  _buildKpiCard(
+                    icon: Icons.verified_outlined,
+                    color: Colors.purple.shade700,
+                    title: 'Status',
+                    value: status,
+                    subtitle: 'Current State',
+                  ),
+                ],
+              ),
+            ],
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildActionBar() {
+    return Row(
+      children: [
+        if (pendingFee > 0) ...[
+          Expanded(
+            flex: 2,
+            child: SizedBox(
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: () => _showPaymentModal(context),
+                icon: const Icon(Icons.payment),
+                label: Text(
+                  'Pay Pending Fee (₹${_formatRupees(pendingFee)})',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade700,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+        ],
+        Expanded(
+          flex: 1,
+          child: SizedBox(
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: () => _showReceiptDialog(context),
+              icon: const Icon(Icons.receipt_long),
+              label: const Text('Download Receipt'),
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  IconData _getFeeIcon(String feeType) {
+    final lower = feeType.toLowerCase();
+    if (lower.contains('tuition')) return Icons.school_outlined;
+    if (lower.contains('bus') || lower.contains('transport')) return Icons.directions_bus_outlined;
+    if (lower.contains('exam')) return Icons.assignment_outlined;
+    if (lower.contains('lib') || lower.contains('lab')) return Icons.biotech_outlined;
+    return Icons.receipt_outlined;
+  }
+
+  Widget _buildBreakdownSection() {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.format_list_bulleted, color: Colors.blue.shade700),
+                    const SizedBox(width: 10),
+                    const Text(
+                      'Fee Structure & Breakdown',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${breakdown.length} Items',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blue.shade700),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Detailed semester breakdown including academic tuition, transport, exams, and facility charges',
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+            ),
+            const Divider(height: 24),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: breakdown.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final item = breakdown[index];
+                final feeType = item['feeType']?.toString() ?? 'Fee Component';
+                final totalAmount = (item['totalAmount'] is num) ? (item['totalAmount'] as num).toInt() : 0;
+                final paidAmount = (item['paidAmount'] is num) ? (item['paidAmount'] as num).toInt() : 0;
+                final dueAmount = (item['dueAmount'] is num) ? (item['dueAmount'] as num).toInt() : 0;
+                final itemDueDate = item['dueDate']?.toString() ?? dueDate;
+                final itemStatus = item['status']?.toString() ?? (dueAmount > 0 ? 'Pending' : 'Paid');
+                final bool isPaid = itemStatus.toLowerCase() == 'paid';
+
+                return Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: isPaid ? Colors.grey.shade50 : Colors.amber.shade50.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isPaid ? Colors.grey.shade200 : Colors.amber.shade200,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: isPaid ? Colors.green.shade50 : Colors.orange.shade50,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          _getFeeIcon(feeType),
+                          color: isPaid ? Colors.green.shade700 : Colors.orange.shade800,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              feeType,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Due Date: $itemDueDate | Total: ₹${_formatRupees(totalAmount)}',
+                              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            'Paid: ₹${_formatRupees(paidAmount)}',
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            dueAmount > 0 ? 'Due: ₹${_formatRupees(dueAmount)}' : 'Cleared',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: dueAmount > 0 ? Colors.orange.shade900 : Colors.green.shade800,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 14),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isPaid ? Colors.green.shade100 : Colors.orange.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          itemStatus.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: isPaid ? Colors.green.shade900 : Colors.orange.shade900,
+                          ),
+                        ),
+                      ),
+                      if (dueAmount > 0) ...[
+                        const SizedBox(width: 10),
+                        ElevatedButton(
+                          onPressed: () => _showPaymentModal(
+                            context,
+                            specificAmount: dueAmount,
+                            feeType: feeType,
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue.shade700,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                          child: const Text('Pay'),
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSupportCard() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.blue.shade100),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.headset_mic_outlined, size: 32, color: Colors.blue.shade700),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'HITAM Accounts Section & Helpline',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'For payment plans, scholarship verifications, or fee queries: accounts@hitam.edu | +91 91000 00000',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final double progress = totalFee > 0 ? (paidFee / totalFee).clamp(0.0, 1.0) : 0.0;
+    final double percentage = progress * 100;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Fee Details'),
+        title: const Text('Fee Details & Invoices'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
+            onPressed: fetchFeeData,
+          ),
+          IconButton(
+            icon: const Icon(Icons.receipt_long),
+            tooltip: 'View Receipt',
+            onPressed: () => _showReceiptDialog(context),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: isLoading
           ? const Center(
@@ -4572,80 +5626,41 @@ class _ParentFeeDetailsScreenState
                         style: const TextStyle(fontSize: 18),
                       ),
                       const SizedBox(height: 15),
-                      ElevatedButton(
+                      ElevatedButton.icon(
                         onPressed: fetchFeeData,
-                        child: const Text('Retry'),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Retry'),
                       ),
                     ],
                   ),
                 )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        studentName,
-                        style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                        ),
+              : Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1080),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildStudentHeroCard(),
+                          const SizedBox(height: 20),
+                          _buildProgressCard(percentage, progress),
+                          const SizedBox(height: 20),
+                          _buildKpiSection(),
+                          const SizedBox(height: 24),
+                          _buildActionBar(),
+                          const SizedBox(height: 24),
+                          _buildBreakdownSection(),
+                          const SizedBox(height: 24),
+                          _buildSupportCard(),
+                          const SizedBox(height: 24),
+                        ],
                       ),
-
-                      const SizedBox(height: 25),
-
-                      DashboardCard(
-                        icon: Icons.currency_rupee,
-                        title: 'Total Fee',
-                        value: '₹$totalFee',
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      DashboardCard(
-                        icon: Icons.check_circle,
-                        title: 'Paid Fee',
-                        value: '₹$paidFee',
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      DashboardCard(
-                        icon: Icons.pending,
-                        title: 'Pending Fee',
-                        value: '₹$pendingFee',
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      DashboardCard(
-                        icon: Icons.calendar_month,
-                        title: 'Due Date',
-                        value: dueDate,
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      DashboardCard(
-                        icon: Icons.info,
-                        title: 'Status',
-                        value: status,
-                      ),
-
-                      const SizedBox(height: 25),
-
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: fetchFeeData,
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Refresh Data'),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
     );
   }
 }
+
 

@@ -68,10 +68,13 @@ exports.getParentFees = async (req, res) => {
 
                 return res.json({
                     studentName: student?.name || "Bhargavi",
+                    studentId: student?.roll_no || "22K91A0501",
+                    department: student?.department ? `${student.department} - ${student.year || '4th Year'}` : "CSE - 4th Year",
+                    academicYear: "2025 - 2026",
                     totalFee: Math.round(total),
                     paidFee: Math.round(paid),
                     pendingFee: Math.round(pending),
-                    dueDate: pendingItem?.due_date || "30-08-2026",
+                    dueDate: pendingItem?.due_date || "30 August 2026",
                     status: pending > 0 ? "Pending" : "Paid",
                     breakdown: feesList.map(f => ({
                         feeType: f.fee_type,

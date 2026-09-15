@@ -117,11 +117,20 @@ const mockDb = {
     },
     parentFees: {
         studentName: "Bhargavi",
-        totalFee: 50000,
-        paidFee: 35000,
-        pendingFee: 15000,
-        dueDate: "30-08-2026",
-        status: "Pending"
+        studentId: "22K91A0501",
+        department: "CSE - 4th Year",
+        academicYear: "2025 - 2026",
+        totalFee: 117500,
+        paidFee: 92500,
+        pendingFee: 25000,
+        dueDate: "30 August 2026",
+        status: "Pending",
+        breakdown: [
+            { feeType: "Academic Tuition Fee", totalAmount: 85000, paidAmount: 60000, dueAmount: 25000, dueDate: "30 August 2026", status: "Pending" },
+            { feeType: "College Bus Transport", totalAmount: 25000, paidAmount: 25000, dueAmount: 0, dueDate: "15 July 2026", status: "Paid" },
+            { feeType: "Examination Fee", totalAmount: 2500, paidAmount: 2500, dueAmount: 0, dueDate: "10 August 2026", status: "Paid" },
+            { feeType: "Library & Lab Deposit", totalAmount: 5000, paidAmount: 5000, dueAmount: 0, dueDate: "01 June 2026", status: "Paid" }
+        ]
     },
     fees: [
         { feeType: "Academic Tuition Fee", totalAmount: 85000, paidAmount: 60000, dueAmount: 25000, dueDate: "30 August 2026", status: "Pending" },
