@@ -1,0 +1,10 @@
+{
+  "name": "intelligent-erp-system",
+  "version": "1.0.0",
+  "description": "HITAM Intelligent ERP System root helper scripts",
+  "scripts": {
+    "dev": "npm --prefix backend run dev",
+    "start": "npm --prefix backend start",
+    "test:backend": "npm --prefix backend test"
+  }
+}

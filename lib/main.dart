@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'config/api_config.dart';
 
 void main() {
   runApp(const IntelligentERP());
@@ -30,8 +31,101 @@ class IntelligentERP extends StatelessWidget {
 // LOGIN PAGE
 // ============================================================
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _emailController =
+      TextEditingController(text: 'bhargavi@hitam.edu');
+  final TextEditingController _passwordController =
+      TextEditingController(text: 'password123');
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter both Email and Password';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await http.post(
+        ApiConfig.loginUrl,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final role = data['user']?['role']?.toString().toLowerCase() ?? 'student';
+
+        if (!mounted) return;
+
+        // Route to the corresponding role dashboard
+        Widget targetDashboard;
+        switch (role) {
+          case 'faculty':
+            targetDashboard = const FacultyDashboard();
+            break;
+          case 'parent':
+            targetDashboard = const ParentDashboard();
+            break;
+          case 'admin':
+            targetDashboard = const AdminDashboard();
+            break;
+          case 'student':
+          default:
+            targetDashboard = const StudentDashboard();
+            break;
+        }
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => targetDashboard),
+        );
+      } else {
+        setState(() {
+          _errorMessage = 'Invalid credentials. Please try again.';
+        });
+      }
+    } catch (e) {
+      // If network fails, navigate to role selector as graceful fallback
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Connecting to backend (${ApiConfig.baseUrl})...'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const RolePage()),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,11 +163,36 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 30),
+
+                if (_errorMessage != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.red),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
                 TextField(
+                  controller: _emailController,
                   decoration: InputDecoration(
                     labelText: 'Email / User ID',
+                    hintText: 'e.g. bhargavi@hitam.edu',
                     prefixIcon: const Icon(Icons.person),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -84,6 +203,7 @@ class LoginPage extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 TextField(
+                  controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Password',
@@ -100,17 +220,46 @@ class LoginPage extends StatelessWidget {
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const RolePage(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'Login',
-                      style: TextStyle(fontSize: 18),
+                    onPressed: _isLoading ? null : _handleLogin,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
+                          )
+                        : const Text(
+                            'Sign In',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RolePage(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.touch_app),
+                  label: const Text('Quick Role Selector (Demo Mode)'),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
@@ -300,7 +449,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
     try {
       final response = await http.get(
         Uri.parse(
-          'http://10.0.2.2:5050/api/student',
+          '${ApiConfig.baseUrl}/api/student',
         ),
       );
 
@@ -767,7 +916,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
   Future<void> fetchAnnouncements() async {
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:5050/api/announcements'),
+        Uri.parse('${ApiConfig.baseUrl}/api/announcements'),
       );
 
       if (response.statusCode == 200) {
@@ -934,7 +1083,7 @@ class _AssignmentsScreenState
     try {
       final response = await http.get(
         Uri.parse(
-          'http://10.0.2.2:5050/api/student/assignments',
+          '${ApiConfig.baseUrl}/api/student/assignments',
         ),
       );
 
@@ -1141,7 +1290,7 @@ class _ExaminationDetailsScreenState
     try {
       final response = await http.get(
         Uri.parse(
-          'http://10.0.2.2:5050/api/student/exams',
+          '${ApiConfig.baseUrl}/api/student/exams',
         ),
       );
 
@@ -1355,7 +1504,7 @@ class _StudentResultsScreenState
     try {
       final response = await http.get(
         Uri.parse(
-          'http://10.0.2.2:5050/api/student/results',
+          '${ApiConfig.baseUrl}/api/student/results',
         ),
       );
 
@@ -1703,13 +1852,13 @@ class _FacultyDashboardState extends State<FacultyDashboard> {
     try {
       final facultyResponse = await http.get(
         Uri.parse(
-          'http://10.0.2.2:5050/api/faculty',
+          '${ApiConfig.baseUrl}/api/faculty',
         ),
       );
 
       final studentsResponse = await http.get(
         Uri.parse(
-          'http://10.0.2.2:5050/api/faculty/students',
+          '${ApiConfig.baseUrl}/api/faculty/students',
         ),
       );
 
@@ -2180,7 +2329,7 @@ class _FacultyAssignmentsScreenState
     try {
       final response = await http.get(
         Uri.parse(
-          'http://10.0.2.2:5050/api/faculty/assignments',
+          '${ApiConfig.baseUrl}/api/faculty/assignments',
         ),
       );
 
@@ -2430,7 +2579,7 @@ class _FacultyAttendanceScreenState
     try {
       final response = await http.get(
         Uri.parse(
-          'http://10.0.2.2:5050/api/faculty/attendance',
+          '${ApiConfig.baseUrl}/api/faculty/attendance',
         ),
       );
 
@@ -2668,7 +2817,7 @@ class _FacultyAnnouncementsScreenState
 
       final response = await http.post(
         Uri.parse(
-          'http://10.0.2.2:5050/api/faculty/announcements',
+          '${ApiConfig.baseUrl}/api/faculty/announcements',
         ),
 
         headers: {
@@ -2981,7 +3130,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     try {
       final response = await http.get(
         Uri.parse(
-          'http://10.0.2.2:5050/api/admin/summary',
+          '${ApiConfig.baseUrl}/api/admin/summary',
         ),
       );
 
@@ -3228,7 +3377,7 @@ class _AdminStudentManagementScreenState
 
       final response = await http.get(
         Uri.parse(
-          'http://10.0.2.2:5050/api/admin/students',
+          '${ApiConfig.baseUrl}/api/admin/students',
         ),
       );
 
@@ -3287,7 +3436,7 @@ class _AdminStudentManagementScreenState
 
       final response = await http.post(
         Uri.parse(
-          'http://10.0.2.2:5050/api/admin/students',
+          '${ApiConfig.baseUrl}/api/admin/students',
         ),
         headers: {
           'Content-Type': 'application/json',
@@ -3673,7 +3822,7 @@ class _ParentDashboardState
     try {
       final response = await http.get(
         Uri.parse(
-          'http://10.0.2.2:5050/api/parent',
+          '${ApiConfig.baseUrl}/api/parent',
         ),
       );
 
@@ -3977,7 +4126,7 @@ class _AdminFacultyManagementScreenState
   Future<void> fetchFaculty() async {
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:5050/api/admin/faculty'),
+        Uri.parse('${ApiConfig.baseUrl}/api/admin/faculty'),
       );
 
       if (response.statusCode == 200) {
@@ -4140,7 +4289,7 @@ class _AdminAnnouncementManagementScreenState
     try {
       final response = await http.post(
         Uri.parse(
-          'http://10.0.2.2:5050/api/admin/announcements',
+          '${ApiConfig.baseUrl}/api/admin/announcements',
         ),
         headers: {
           'Content-Type': 'application/json',
@@ -4362,7 +4511,7 @@ class _ParentFeeDetailsScreenState
   Future<void> fetchFeeData() async {
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:5050/api/parent/fees'),
+        Uri.parse('${ApiConfig.baseUrl}/api/parent/fees'),
       );
 
       if (response.statusCode == 200) {

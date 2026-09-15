@@ -46,3 +46,14 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Node / Backend
+node_modules/
+**/node_modules/
+.env
+**/.env
+
+# AI Assistant configs
+.agents/
+.cursor/
+
