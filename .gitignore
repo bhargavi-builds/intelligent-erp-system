@@ -56,4 +56,5 @@ node_modules/
 # AI Assistant configs
 .agents/
 .cursor/
+skills-lock.json
 
