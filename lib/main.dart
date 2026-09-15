@@ -713,175 +713,1293 @@ const SizedBox(height: 12),
 // ============================================================
 // ATTENDANCE DETAILS SCREEN
 // ============================================================
+// ATTENDANCE DETAILS SCREEN (OPTIMIZED RESPONSIVE DASHBOARD)
+// ============================================================
 
-class AttendanceDetailsScreen extends StatelessWidget {
+class AttendanceDetailsScreen extends StatefulWidget {
   const AttendanceDetailsScreen({super.key});
+
+  @override
+  State<AttendanceDetailsScreen> createState() =>
+      _AttendanceDetailsScreenState();
+}
+
+class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
+  bool isLoading = true;
+  String errorMessage = '';
+
+  String studentName = 'Bhargavi';
+  String studentId = '22K91A0501';
+  String department = 'CSE - 4th Year';
+  String semester = 'Semester 7';
+  int overallAttendance = 85;
+  int totalClasses = 120;
+  int attendedClasses = 103;
+  int marginClasses = 16;
+
+  List<Map<String, dynamic>> subjects = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchAttendanceData();
+  }
+
+  Future<void> fetchAttendanceData() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/api/student/attendance'),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        setState(() {
+          studentName = data['studentName']?.toString() ?? 'Bhargavi';
+          studentId = data['studentId']?.toString() ?? '22K91A0501';
+          department = data['department']?.toString() ?? 'CSE - 4th Year';
+          semester = data['semester']?.toString() ?? 'Semester 7';
+
+          overallAttendance = (data['overallAttendance'] is num)
+              ? (data['overallAttendance'] as num).toInt()
+              : int.tryParse(data['overallAttendance']?.toString() ?? '') ?? 85;
+
+          totalClasses = (data['totalClasses'] is num)
+              ? (data['totalClasses'] as num).toInt()
+              : int.tryParse(data['totalClasses']?.toString() ?? '') ?? 120;
+
+          attendedClasses = (data['attendedClasses'] is num)
+              ? (data['attendedClasses'] as num).toInt()
+              : int.tryParse(data['attendedClasses']?.toString() ?? '') ?? 103;
+
+          marginClasses = (data['marginClasses'] is num)
+              ? (data['marginClasses'] as num).toInt()
+              : int.tryParse(data['marginClasses']?.toString() ?? '') ?? 16;
+
+          if (data['subjects'] is List && (data['subjects'] as List).isNotEmpty) {
+            subjects = List<Map<String, dynamic>>.from(
+              (data['subjects'] as List).map(
+                (s) => Map<String, dynamic>.from(s as Map),
+              ),
+            );
+          } else {
+            subjects = [
+              {
+                "subject": "Computer Networks",
+                "code": "CS701PC",
+                "faculty": "Dr. Ramesh",
+                "attended": 28,
+                "total": 32,
+                "percentage": 88
+              },
+              {
+                "subject": "Neural Networks",
+                "code": "CS702PE",
+                "faculty": "Prof. Priya",
+                "attended": 25,
+                "total": 30,
+                "percentage": 83
+              },
+              {
+                "subject": "Big Data",
+                "code": "CS703PE",
+                "faculty": "Dr. Sharma",
+                "attended": 27,
+                "total": 30,
+                "percentage": 90
+              },
+              {
+                "subject": "Compiler Design",
+                "code": "CS704PC",
+                "faculty": "Prof. K. Rao",
+                "attended": 23,
+                "total": 28,
+                "percentage": 82
+              }
+            ];
+          }
+
+          isLoading = false;
+          errorMessage = '';
+        });
+      } else {
+        setState(() {
+          errorMessage = 'Failed to load attendance details';
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      // Fallback with realistic HITAM mock data
+      setState(() {
+        studentName = 'Bhargavi';
+        studentId = '22K91A0501';
+        department = 'CSE - 4th Year';
+        semester = 'Semester 7';
+        overallAttendance = 85;
+        totalClasses = 120;
+        attendedClasses = 103;
+        marginClasses = 16;
+        subjects = [
+          {
+            "subject": "Computer Networks",
+            "code": "CS701PC",
+            "faculty": "Dr. Ramesh",
+            "attended": 28,
+            "total": 32,
+            "percentage": 88
+          },
+          {
+            "subject": "Neural Networks",
+            "code": "CS702PE",
+            "faculty": "Prof. Priya",
+            "attended": 25,
+            "total": 30,
+            "percentage": 83
+          },
+          {
+            "subject": "Big Data",
+            "code": "CS703PE",
+            "faculty": "Dr. Sharma",
+            "attended": 27,
+            "total": 30,
+            "percentage": 90
+          },
+          {
+            "subject": "Compiler Design",
+            "code": "CS704PC",
+            "faculty": "Prof. K. Rao",
+            "attended": 23,
+            "total": 28,
+            "percentage": 82
+          }
+        ];
+        isLoading = false;
+        errorMessage = '';
+      });
+    }
+  }
+
+  void _showLeaveModal(BuildContext context) {
+    String leaveType = 'Medical Leave';
+    final reasonController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return SafeArea(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: 24,
+                      left: 24,
+                      right: 24,
+                      bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade50,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(Icons.edit_calendar, color: Colors.blue),
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Apply for Leave / On-Duty (OD)',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Student: $studentName ($studentId)',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () => Navigator.pop(ctx),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Select Category',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          value: leaveType,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: 'Medical Leave', child: Text('Medical Leave (Sick / Hospitalization)')),
+                            DropdownMenuItem(value: 'On-Duty (Hackathon)', child: Text('On-Duty (Hackathon / Tech Fest)')),
+                            DropdownMenuItem(value: 'On-Duty (Sports)', child: Text('On-Duty (University Sports Meet)')),
+                            DropdownMenuItem(value: 'Personal / Family', child: Text('Personal / Family Event')),
+                          ],
+                          onChanged: (val) => setModalState(() => leaveType = val!),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Duration / Date(s)',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.calendar_today, size: 18, color: Colors.blue),
+                                  SizedBox(width: 10),
+                                  Text('16 Sep 2026  ➔  18 Sep 2026 (3 Days)'),
+                                ],
+                              ),
+                              Text('Change', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Reason / Justification',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: reasonController,
+                          maxLines: 2,
+                          decoration: InputDecoration(
+                            hintText: 'e.g. Attending Smart India Hackathon finals with college team',
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                            contentPadding: const EdgeInsets.all(12),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.send),
+                            label: const Text('Submit Application to HOD', style: TextStyle(fontWeight: FontWeight.bold)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue.shade700,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('$leaveType request submitted to Dr. Ramesh (HOD CSE). Tracking Ref: HITAM-OD-2026-891'),
+                                  backgroundColor: Colors.green.shade800,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showMarginCalculator(BuildContext context) {
+    int simulateMiss = 2;
+    int simulateAttend = 4;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final int projAttended = attendedClasses + simulateAttend;
+            final int projTotal = totalClasses + simulateAttend + simulateMiss;
+            final double projPercent = projTotal > 0 ? (projAttended / projTotal) * 100 : 85.0;
+
+            return Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade50,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(Icons.calculate, color: Colors.blue),
+                              ),
+                              const SizedBox(width: 12),
+                              const Text(
+                                'Attendance Margin Calculator',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                              ),
+                            ],
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 20),
+                      Text(
+                        'Project your future attendance by simulating upcoming attended vs. missed lectures:',
+                        style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: projPercent >= 75 ? Colors.green.shade50 : Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: projPercent >= 75 ? Colors.green.shade300 : Colors.red.shade300,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Projected Attendance:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                Text(
+                                  projPercent >= 75 ? 'Safe Zone (Exam Eligible)' : 'Warning: Below 75% Cutoff',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: projPercent >= 75 ? Colors.green.shade900 : Colors.red.shade900,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              '${projPercent.toStringAsFixed(1)}%',
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                                color: projPercent >= 75 ? Colors.green.shade900 : Colors.red.shade900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Upcoming Classes Attending:'),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.remove_circle_outline),
+                                onPressed: simulateAttend > 0 ? () => setDialogState(() => simulateAttend--) : null,
+                              ),
+                              Text('$simulateAttend', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              IconButton(
+                                icon: const Icon(Icons.add_circle_outline),
+                                onPressed: () => setDialogState(() => simulateAttend++),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Upcoming Classes Missing:'),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.remove_circle_outline),
+                                onPressed: simulateMiss > 0 ? () => setDialogState(() => simulateMiss--) : null,
+                              ),
+                              Text('$simulateMiss', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              IconButton(
+                                icon: const Icon(Icons.add_circle_outline),
+                                onPressed: () => setDialogState(() => simulateMiss++),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 20),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text('Close'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showTranscriptDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 550),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.school, size: 28, color: Colors.blue),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'HITAM HYDERABAD',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            Text(
+                              'Official Attendance Transcript',
+                              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const Divider(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Doc Ref: HITAM/ATT/2026/0411', style: TextStyle(fontSize: 13, color: Colors.grey.shade800, fontWeight: FontWeight.bold)),
+                    const Text('Issued: 15 Sep 2026', style: TextStyle(fontSize: 13, color: Colors.grey)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Candidate: $studentName', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text('Roll No: $studentId | Department: $department'),
+                      const SizedBox(height: 4),
+                      Text('Semester: $semester | Academic Year: 2025-2026'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Subject-wise Verified Records:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                for (var s in subjects) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 3.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('${s['subject']} (${s['code'] ?? 'CS'})'),
+                        Text(
+                          '${s['attended']} / ${s['total']} (${s['percentage']}%)',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: (s['percentage'] as int) >= 75 ? Colors.green.shade800 : Colors.orange.shade800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                const Divider(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Aggregate Attendance:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text(
+                      '$overallAttendance% (EXAM ELIGIBLE)',
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green.shade800, fontSize: 14),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Attendance Transcript PDF downloaded to local storage.')),
+                        );
+                      },
+                      icon: const Icon(Icons.download),
+                      label: const Text('Download PDF'),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStudentHeroCard() {
+    final bool isEligible = overallAttendance >= 75;
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 30,
+              backgroundColor: Colors.blue.shade100,
+              child: const Icon(Icons.school, size: 32, color: Colors.blue),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    studentName,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: Text(
+                          'Roll: $studentId',
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade800, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.blue.shade200),
+                        ),
+                        child: Text(
+                          department,
+                          style: TextStyle(fontSize: 12, color: Colors.blue.shade800, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.purple.shade50,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.purple.shade200),
+                        ),
+                        child: Text(
+                          semester,
+                          style: TextStyle(fontSize: 12, color: Colors.purple.shade800, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: isEligible ? Colors.green.shade50 : Colors.red.shade50,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: isEligible ? Colors.green.shade300 : Colors.red.shade300),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isEligible ? Icons.verified : Icons.warning_amber_rounded,
+                    size: 18,
+                    color: isEligible ? Colors.green.shade800 : Colors.red.shade800,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    isEligible ? 'Exam Eligible ($overallAttendance%)' : 'Shortage ($overallAttendance%)',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: isEligible ? Colors.green.shade900 : Colors.red.shade900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildKpiCard({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String value,
+    required String subtitle,
+  }) {
+    return Expanded(
+      child: Card(
+        elevation: 1,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildKpiSection() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isDesktop = constraints.maxWidth >= 720;
+        if (isDesktop) {
+          return Row(
+            children: [
+              _buildKpiCard(
+                icon: Icons.donut_large,
+                color: Colors.blue.shade700,
+                title: 'Overall Attendance',
+                value: '$overallAttendance.0%',
+                subtitle: '+10% above university cutoff',
+              ),
+              const SizedBox(width: 12),
+              _buildKpiCard(
+                icon: Icons.class_outlined,
+                color: Colors.indigo.shade700,
+                title: 'Total Lectures Held',
+                value: '$totalClasses Classes',
+                subtitle: 'Across 4 Major Subjects',
+              ),
+              const SizedBox(width: 12),
+              _buildKpiCard(
+                icon: Icons.check_circle_outline,
+                color: Colors.green.shade700,
+                title: 'Lectures Attended',
+                value: '$attendedClasses Attended',
+                subtitle: '${totalClasses - attendedClasses} missed lectures',
+              ),
+              const SizedBox(width: 12),
+              _buildKpiCard(
+                icon: Icons.shield_outlined,
+                color: Colors.orange.shade800,
+                title: 'Attendance Buffer',
+                value: '$marginClasses Classes',
+                subtitle: 'Can miss up to $marginClasses & stay ≥75%',
+              ),
+            ],
+          );
+        } else {
+          return Column(
+            children: [
+              Row(
+                children: [
+                  _buildKpiCard(
+                    icon: Icons.donut_large,
+                    color: Colors.blue.shade700,
+                    title: 'Overall Attendance',
+                    value: '$overallAttendance%',
+                    subtitle: 'Safe Zone',
+                  ),
+                  const SizedBox(width: 12),
+                  _buildKpiCard(
+                    icon: Icons.class_outlined,
+                    color: Colors.indigo.shade700,
+                    title: 'Total Classes',
+                    value: '$totalClasses',
+                    subtitle: 'Held',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  _buildKpiCard(
+                    icon: Icons.check_circle_outline,
+                    color: Colors.green.shade700,
+                    title: 'Attended',
+                    value: '$attendedClasses',
+                    subtitle: 'Recorded',
+                  ),
+                  const SizedBox(width: 12),
+                  _buildKpiCard(
+                    icon: Icons.shield_outlined,
+                    color: Colors.orange.shade800,
+                    title: 'Buffer Margin',
+                    value: '$marginClasses Classes',
+                    subtitle: 'Above 75%',
+                  ),
+                ],
+              ),
+            ],
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildOverallProgressCard() {
+    final double ratio = (overallAttendance / 100).clamp(0.0, 1.0);
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: Padding(
+        padding: const EdgeInsets.all(18.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.assessment_outlined, size: 20, color: Colors.blue.shade700),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Aggregate Attendance vs. University Criteria',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ],
+                ),
+                Text(
+                  '$overallAttendance% (Target: 75%)',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: overallAttendance >= 75 ? Colors.green.shade800 : Colors.red.shade800,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: LinearProgressIndicator(
+                value: ratio,
+                minHeight: 12,
+                backgroundColor: Colors.grey.shade200,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  overallAttendance >= 75 ? Colors.green.shade600 : Colors.orange.shade600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Minimum 75% required for regular semester exam eligibility',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+                Text(
+                  '+10% Safe Margin',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green.shade800),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  IconData _getSubjectIcon(String subject) {
+    final lower = subject.toLowerCase();
+    if (lower.contains('network')) return Icons.devices;
+    if (lower.contains('neural') || lower.contains('learn') || lower.contains('ai')) return Icons.psychology;
+    if (lower.contains('data')) return Icons.storage;
+    if (lower.contains('compiler') || lower.contains('software')) return Icons.code;
+    return Icons.menu_book;
+  }
+
+  Widget _buildSubjectCard(Map<String, dynamic> item) {
+    final String subject = item['subject']?.toString() ?? 'Subject';
+    final String code = item['code']?.toString() ?? 'CS70X';
+    final String faculty = item['faculty']?.toString() ?? 'Department Faculty';
+    final int attended = (item['attended'] is num) ? (item['attended'] as num).toInt() : 0;
+    final int total = (item['total'] is num) ? (item['total'] as num).toInt() : 0;
+    final int percentage = (item['percentage'] is num)
+        ? (item['percentage'] as num).toInt()
+        : (total > 0 ? ((attended / total) * 100).round() : 0);
+
+    final bool isSafe = percentage >= 75;
+    final int bufferOrNeeded = isSafe
+        ? ((attended - (0.75 * total)) / 0.75).floor().clamp(0, 99)
+        : (((0.75 * total) - attended) / 0.25).ceil().clamp(1, 99);
+
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: Padding(
+        padding: const EdgeInsets.all(18.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isSafe ? Colors.blue.shade50 : Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    _getSubjectIcon(subject),
+                    color: isSafe ? Colors.blue.shade700 : Colors.orange.shade800,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        subject,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$code • $faculty',
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isSafe ? Colors.green.shade100 : Colors.orange.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '$percentage%',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: isSafe ? Colors.green.shade900 : Colors.orange.shade900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: LinearProgressIndicator(
+                value: (percentage / 100).clamp(0.0, 1.0),
+                minHeight: 8,
+                backgroundColor: Colors.grey.shade200,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isSafe ? Colors.green.shade600 : Colors.orange.shade600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '$attended / $total classes attended  (${total - attended} missed)',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                ),
+                Text(
+                  isSafe ? 'Can miss $bufferOrNeeded more' : 'Must attend next $bufferOrNeeded',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: isSafe ? Colors.green.shade800 : Colors.orange.shade900,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubjectGrid() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isDesktop = constraints.maxWidth >= 720;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.menu_book_outlined, color: Colors.blue.shade700),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Subject-wise Attendance Breakdown',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${subjects.length} Registered Courses',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blue.shade700),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            if (isDesktop) ...[
+              // 2-column grid for desktop
+              for (int i = 0; i < subjects.length; i += 2) ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: _buildSubjectCard(subjects[i])),
+                    const SizedBox(width: 14),
+                    if (i + 1 < subjects.length)
+                      Expanded(child: _buildSubjectCard(subjects[i + 1]))
+                    else
+                      const Spacer(),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+            ] else ...[
+              // 1-column list for mobile/narrow
+              for (var s in subjects) ...[
+                _buildSubjectCard(s),
+                const SizedBox(height: 12),
+              ],
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildActionBar() {
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: SizedBox(
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: () => _showLeaveModal(context),
+              icon: const Icon(Icons.edit_calendar),
+              label: const Text(
+                'Apply for Leave / On-Duty (OD)',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade700,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          flex: 1,
+          child: SizedBox(
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: () => _showMarginCalculator(context),
+              icon: const Icon(Icons.calculate_outlined),
+              label: const Text('Margin Calc'),
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          flex: 1,
+          child: SizedBox(
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: () => _showTranscriptDialog(context),
+              icon: const Icon(Icons.receipt_long),
+              label: const Text('Transcript'),
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRegulationsCard() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.blue.shade100),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 26, color: Colors.blue.shade700),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'HITAM Academic Regulations & Attendance Policy',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '• Regular Eligibility: ≥ 75% aggregate attendance is mandatory to appear for Semester End Examinations (SEE).\n'
+                  '• Condonation Zone: 65% – 74% permitted on genuine medical grounds subject to Principal approval.\n'
+                  '• Detention Zone: < 65% attendance leads to semester detention as per autonomous academic bylaws.',
+                  style: TextStyle(fontSize: 12, height: 1.4, color: Colors.grey.shade700),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Attendance Details'),
+        title: const Text('Attendance Details & Analytics'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
+            onPressed: fetchAttendanceData,
+          ),
+          IconButton(
+            icon: const Icon(Icons.receipt_long),
+            tooltip: 'Official Transcript',
+            onPressed: () => _showTranscriptDialog(context),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Bhargavi',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    const Text(
-                      'Overall Attendance',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : errorMessage.isNotEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 60,
+                        color: Colors.red,
+                      ),
+                      const SizedBox(height: 15),
+                      Text(
+                        errorMessage,
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      const SizedBox(height: 15),
+                      ElevatedButton.icon(
+                        onPressed: fetchAttendanceData,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              : Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1080),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildStudentHeroCard(),
+                          const SizedBox(height: 20),
+                          _buildKpiSection(),
+                          const SizedBox(height: 20),
+                          _buildOverallProgressCard(),
+                          const SizedBox(height: 24),
+                          _buildActionBar(),
+                          const SizedBox(height: 28),
+                          _buildSubjectGrid(),
+                          const SizedBox(height: 28),
+                          _buildRegulationsCard(),
+                          const SizedBox(height: 20),
+                        ],
                       ),
                     ),
-
-                    const SizedBox(height: 15),
-
-                    const Text(
-                      '85%',
-                      style: TextStyle(
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-
-                    const SizedBox(height: 15),
-
-                    LinearProgressIndicator(
-                      value: 0.85,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-
-            const SizedBox(height: 25),
-
-            const Text(
-              'Subject-wise Attendance',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            AttendanceSubjectCard(
-              subject: 'Computer Networks',
-              attended: 28,
-              total: 32,
-              percentage: 88,
-            ),
-
-            AttendanceSubjectCard(
-              subject: 'Neural Networks',
-              attended: 25,
-              total: 30,
-              percentage: 83,
-            ),
-
-            AttendanceSubjectCard(
-              subject: 'Big Data',
-              attended: 27,
-              total: 30,
-              percentage: 90,
-            ),
-
-            AttendanceSubjectCard(
-              subject: 'Compiler Design',
-              attended: 23,
-              total: 28,
-              percentage: 82,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
 
-// ============================================================
-// ATTENDANCE SUBJECT CARD
-// ============================================================
-
-class AttendanceSubjectCard extends StatelessWidget {
-  final String subject;
-  final int attended;
-  final int total;
-  final int percentage;
-
-  const AttendanceSubjectCard({
-    super.key,
-    required this.subject,
-    required this.attended,
-    required this.total,
-    required this.percentage,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              subject,
-              style: const TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            Text(
-              '$attended / $total classes attended',
-              style: const TextStyle(
-                color: Colors.grey,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            LinearProgressIndicator(
-              value: percentage / 100,
-            ),
-
-            const SizedBox(height: 8),
-
-            Text(
-              '$percentage%',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // ANNOUNCEMENTS SCREEN
 class AnnouncementsScreen extends StatefulWidget {
@@ -3937,10 +5055,22 @@ class _ParentDashboardState
                           Row(
                             children: [
                               Expanded(
-                                child: DashboardCard(
-                                  icon: Icons.calendar_month,
-                                  title: 'Attendance',
-                                  value: '$attendance%',
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(12),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const AttendanceDetailsScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: DashboardCard(
+                                    icon: Icons.calendar_month,
+                                    title: 'Attendance (View)',
+                                    value: '$attendance%',
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 14),

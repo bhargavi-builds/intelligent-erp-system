@@ -38,14 +38,19 @@ const mockDb = {
         newAnnouncements: 4
     },
     attendance: {
-        studentId: "STU001",
+        studentId: "22K91A0501",
         studentName: "Bhargavi",
+        department: "CSE - 4th Year",
+        semester: "Semester 7",
         overallAttendance: 85,
+        totalClasses: 120,
+        attendedClasses: 103,
+        marginClasses: 16,
         subjects: [
-            { subject: "Data Structures", attended: 42, total: 48, percentage: 88 },
-            { subject: "Machine Learning", attended: 38, total: 45, percentage: 84 },
-            { subject: "Computer Networks", attended: 40, total: 46, percentage: 87 },
-            { subject: "Software Engineering", attended: 36, total: 44, percentage: 82 }
+            { subject: "Computer Networks", code: "CS701PC", faculty: "Dr. Ramesh", attended: 28, total: 32, percentage: 88 },
+            { subject: "Neural Networks", code: "CS702PE", faculty: "Prof. Priya", attended: 25, total: 30, percentage: 83 },
+            { subject: "Big Data", code: "CS703PE", faculty: "Dr. Sharma", attended: 27, total: 30, percentage: 90 },
+            { subject: "Compiler Design", code: "CS704PC", faculty: "Prof. K. Rao", attended: 23, total: 28, percentage: 82 }
         ]
     },
     assignments: [

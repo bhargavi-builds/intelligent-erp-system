@@ -40,10 +40,19 @@ exports.getStudentAttendance = async (req, res) => {
                 .eq("student_id", "STU001");
 
             if (data && !error && data.length > 0) {
+                const total = data.reduce((sum, s) => sum + Number(s.total || 0), 0);
+                const attended = data.reduce((sum, s) => sum + Number(s.attended || 0), 0);
+                const overall = total > 0 ? Math.round((attended / total) * 100) : 85;
+
                 return res.json({
-                    studentId: "STU001",
+                    studentId: "22K91A0501",
                     studentName: "Bhargavi",
-                    overallAttendance: 85,
+                    department: "CSE - 4th Year",
+                    semester: "Semester 7",
+                    overallAttendance: overall,
+                    totalClasses: total,
+                    attendedClasses: attended,
+                    marginClasses: Math.max(0, Math.floor(attended - (0.75 * total))),
                     subjects: data
                 });
             }
