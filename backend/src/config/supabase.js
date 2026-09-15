@@ -100,13 +100,28 @@ const mockDb = {
         { studentId: "STU004", studentName: "Sneha", rollNo: "22K91A0504", status: "Present", percentage: 88 }
     ],
     parent: {
+        parentName: "Mr. Narayana Rao",
         studentName: "Bhargavi",
+        studentId: "22K91A0501",
+        attendance: 85,
+        assignmentsPending: 3,
+        upcomingExams: 2,
+        feeReminder: "₹25,000 Pending",
+        newAnnouncements: 4,
         rollNo: "22K91A0501",
         department: "CSE - 4th Year",
         overallAttendance: "85%",
         pendingFees: "₹25,000",
         recentGpa: "8.65",
         alerts: 2
+    },
+    parentFees: {
+        studentName: "Bhargavi",
+        totalFee: 50000,
+        paidFee: 35000,
+        pendingFee: 15000,
+        dueDate: "30-08-2026",
+        status: "Pending"
     },
     fees: [
         { feeType: "Academic Tuition Fee", totalAmount: 85000, paidAmount: 60000, dueAmount: 25000, dueDate: "30 August 2026", status: "Pending" },

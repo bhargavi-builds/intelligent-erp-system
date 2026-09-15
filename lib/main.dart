@@ -3832,25 +3832,24 @@ class _ParentDashboardState
         );
 
         setState(() {
-          parentName = data['parentName'];
-
-          studentName = data['studentName'];
-
-          studentId = data['studentId'];
-
-          attendance = data['attendance'];
-
-          assignmentsPending =
-              data['assignmentsPending'];
-
-          upcomingExams =
-              data['upcomingExams'];
-
-          feeReminder =
-              data['feeReminder'];
-
-          newAnnouncements =
-              data['newAnnouncements'];
+          parentName = data['parentName']?.toString() ?? 'Parent';
+          studentName = data['studentName']?.toString() ?? 'Bhargavi';
+          studentId = (data['studentId'] ?? data['rollNo'])?.toString() ?? '22K91A0501';
+          attendance = (data['attendance'] is num)
+              ? (data['attendance'] as num).toInt()
+              : int.tryParse(data['attendance']?.toString() ?? '') ?? 85;
+          assignmentsPending = (data['assignmentsPending'] is num)
+              ? (data['assignmentsPending'] as num).toInt()
+              : int.tryParse(data['assignmentsPending']?.toString() ?? '') ?? 3;
+          upcomingExams = (data['upcomingExams'] is num)
+              ? (data['upcomingExams'] as num).toInt()
+              : int.tryParse(data['upcomingExams']?.toString() ?? '') ?? 2;
+          feeReminder = data['feeReminder']?.toString() ??
+              data['pendingFees']?.toString() ??
+              '₹25,000 Pending';
+          newAnnouncements = (data['newAnnouncements'] is num)
+              ? (data['newAnnouncements'] as num).toInt()
+              : int.tryParse(data['newAnnouncements']?.toString() ?? '') ?? 4;
 
           isLoading = false;
           errorMessage = '';
@@ -4518,12 +4517,18 @@ class _ParentFeeDetailsScreenState
         final data = jsonDecode(response.body);
 
         setState(() {
-          studentName = data['studentName'];
-          totalFee = data['totalFee'];
-          paidFee = data['paidFee'];
-          pendingFee = data['pendingFee'];
-          dueDate = data['dueDate'];
-          status = data['status'];
+          studentName = data['studentName']?.toString() ?? 'Bhargavi';
+          totalFee = (data['totalFee'] is num)
+              ? (data['totalFee'] as num).toInt()
+              : int.tryParse(data['totalFee']?.toString() ?? '') ?? 117500;
+          paidFee = (data['paidFee'] is num)
+              ? (data['paidFee'] as num).toInt()
+              : int.tryParse(data['paidFee']?.toString() ?? '') ?? 92500;
+          pendingFee = (data['pendingFee'] is num)
+              ? (data['pendingFee'] as num).toInt()
+              : int.tryParse(data['pendingFee']?.toString() ?? '') ?? 25000;
+          dueDate = data['dueDate']?.toString() ?? '30 August 2026';
+          status = data['status']?.toString() ?? 'Pending';
           isLoading = false;
           errorMessage = '';
         });
