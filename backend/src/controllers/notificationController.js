@@ -240,7 +240,7 @@ exports.markAsRead = async (req, res) => {
 // 5. MARK ALL Notifications As Read
 exports.markAllAsRead = async (req, res) => {
     try {
-        const userId = req.body.userId || "STU001";
+        const userId = (req.body && req.body.userId) || "STU001";
 
         if (isConfigured && supabase) {
             await supabase

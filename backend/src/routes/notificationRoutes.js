@@ -6,6 +6,7 @@ const notificationController = require("../controllers/notificationController");
 router.get("/", notificationController.getNotifications);
 
 // Dispatch new notification (Admin / System / Faculty)
+router.post("/", notificationController.sendNotification);
 router.post("/send", notificationController.sendNotification);
 
 // Register device FCM/APNs push token
