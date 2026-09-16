@@ -2402,11 +2402,12 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (dialogCtx, setDialogState) {
           return Dialog(
+            insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 560),
-              child: Padding(
-                padding: const EdgeInsets.all(28.0),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(22.0),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2420,17 +2421,17 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(Icons.upload_file_rounded,
-                              color: Color(0xFF2563EB), size: 28),
+                              color: Color(0xFF2563EB), size: 26),
                         ),
-                        const SizedBox(width: 14),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              const Text(
                                 'Submit Assignment',
-                                style: const TextStyle(
-                                  fontSize: 20,
+                                style: TextStyle(
+                                  fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF0F172A),
                                 ),
@@ -2438,8 +2439,10 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                               const SizedBox(height: 2),
                               Text(
                                 '${assignment['subject']} (${assignment['code'] ?? 'CS301PC'})',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 12,
                                   color: Colors.grey.shade600,
                                 ),
                               ),
@@ -2452,7 +2455,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
@@ -2467,7 +2470,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                             assignment['title'] ?? 'Assignment',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 15,
+                              fontSize: 14,
                               color: Color(0xFF1E293B),
                             ),
                           ),
@@ -2477,21 +2480,25 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                               Icon(Icons.person_outline,
                                   size: 14, color: Colors.grey.shade600),
                               const SizedBox(width: 4),
-                              Text(
-                                assignment['faculty'] ?? 'Faculty Dept',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade600,
+                              Expanded(
+                                child: Text(
+                                  assignment['faculty'] ?? 'Faculty Dept',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
                                 ),
                               ),
-                              const Spacer(),
+                              const SizedBox(width: 8),
                               Icon(Icons.calendar_today_outlined,
-                                  size: 14, color: const Color(0xFFD97706)),
+                                  size: 13, color: const Color(0xFFD97706)),
                               const SizedBox(width: 4),
                               Text(
                                 'Due: ${assignment['dueDate']}',
                                 style: const TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                   color: Color(0xFFD97706),
                                 ),
@@ -2501,7 +2508,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 16),
                     const Text(
                       'Attach Solution File *',
                       style: TextStyle(
@@ -2521,19 +2528,19 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                       child: Row(
                         children: [
                           const Icon(Icons.picture_as_pdf,
-                              color: Color(0xFFEF4444), size: 24),
+                              color: Color(0xFFEF4444), size: 22),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               selectedFile,
                               style: const TextStyle(
-                                fontSize: 13,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          TextButton.icon(
+                          TextButton(
                             onPressed: () {
                               setDialogState(() {
                                 if (selectedFile.endsWith('.pdf')) {
@@ -2545,15 +2552,14 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                                 }
                               });
                             },
-                            icon: const Icon(Icons.swap_horiz, size: 16),
-                            label: const Text('Change Format', style: TextStyle(fontSize: 12)),
+                            child: const Text('Change Format', style: TextStyle(fontSize: 11)),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Submission Remarks / Execution Notes',
+                      'Submission Remarks / Notes',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
@@ -2567,7 +2573,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                       decoration: InputDecoration(
                         hintText:
                             'e.g., Attached complete source code with automated unit tests and time complexity analysis...',
-                        hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                        hintStyle: TextStyle(fontSize: 12, color: Colors.grey.shade400),
                         filled: true,
                         fillColor: const Color(0xFFF8FAFC),
                         border: OutlineInputBorder(
@@ -2598,14 +2604,14 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     Row(
                       children: [
                         Expanded(
                           child: OutlinedButton(
                             onPressed: () => Navigator.pop(ctx),
                             style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -2627,12 +2633,12 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                                 selectedFile,
                               );
                             },
-                            icon: const Icon(Icons.send_rounded, size: 16),
+                            icon: const Icon(Icons.send_rounded, size: 15),
                             label: const Text('Submit Work'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF2563EB),
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -2656,11 +2662,12 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 580),
-          child: Padding(
-            padding: const EdgeInsets.all(28.0),
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(22.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2674,9 +2681,9 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(Icons.military_tech_rounded,
-                          color: Color(0xFF059669), size: 28),
+                          color: Color(0xFF059669), size: 26),
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2684,14 +2691,16 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                           const Text(
                             'Evaluation & Feedback',
                             style: TextStyle(
-                              fontSize: 20,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF0F172A),
                             ),
                           ),
                           Text(
                             '${assignment['subject']} • ${assignment['code'] ?? 'CS503PC'}',
-                            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                           ),
                         ],
                       ),
@@ -2702,8 +2711,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                // Score card
+                const SizedBox(height: 18),
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -2731,7 +2739,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                             assignment['score'] ?? '24 / 25',
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 28,
+                              fontSize: 26,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
@@ -2749,14 +2757,14 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 15,
+                            fontSize: 14,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 16),
                 Text(
                   'Professor Remarks',
                   style: TextStyle(
@@ -2777,14 +2785,14 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(Icons.format_quote_rounded,
-                          color: Color(0xFF64748B), size: 24),
+                          color: Color(0xFF64748B), size: 22),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           assignment['feedback'] ??
                               'Excellent submission! All test cases passed with thorough boundary analysis.',
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: 12,
                             height: 1.5,
                             color: Color(0xFF334155),
                             fontStyle: FontStyle.italic,
@@ -2807,7 +2815,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                 _buildRubricRow('Algorithm Correctness & Logic', '10 / 10', 1.0),
                 _buildRubricRow('Test Coverage & Edge Cases', '9 / 10', 0.9),
                 _buildRubricRow('Code Quality & Documentation', '5 / 5', 1.0),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -2815,7 +2823,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0F172A),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -2840,7 +2848,14 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(criteria, style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
+              Expanded(
+                child: Text(
+                  criteria,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF475569)),
+                ),
+              ),
               Text(score,
                   style: const TextStyle(
                       fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
@@ -2865,11 +2880,12 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 580),
-          child: Padding(
-            padding: const EdgeInsets.all(28.0),
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(22.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2883,24 +2899,28 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(Icons.menu_book_rounded,
-                          color: Color(0xFF2563EB), size: 26),
+                          color: Color(0xFF2563EB), size: 24),
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             assignment['title'] ?? 'Assignment Details',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontSize: 18,
+                              fontSize: 17,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF0F172A),
                             ),
                           ),
                           Text(
                             '${assignment['subject']} • ${assignment['code'] ?? 'CS301PC'}',
-                            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                           ),
                         ],
                       ),
@@ -2911,7 +2931,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
                 const Text(
                   'Problem Statement & Objectives',
                   style: TextStyle(
@@ -2923,7 +2943,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                 const SizedBox(height: 6),
                 Text(
                   assignment['description'] ?? 'No description provided.',
-                  style: const TextStyle(fontSize: 13, height: 1.5, color: Color(0xFF475569)),
+                  style: const TextStyle(fontSize: 12, height: 1.5, color: Color(0xFF475569)),
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -2948,14 +2968,14 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                     style: const TextStyle(fontSize: 12, height: 1.4, color: Color(0xFF334155)),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () => Navigator.pop(ctx),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -2976,7 +2996,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                           assignment['status'] == 'Pending'
                               ? Icons.upload_file
                               : Icons.check,
-                          size: 16,
+                          size: 15,
                         ),
                         label: Text(assignment['status'] == 'Pending'
                             ? 'Submit Now'
@@ -2984,7 +3004,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2563EB),
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -3049,7 +3069,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
               : RefreshIndicator(
                   onRefresh: fetchAssignments,
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                     child: Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 1120),
@@ -3058,15 +3078,15 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                           children: [
                             // 1. HERO BANNER
                             _buildHeroBanner(totalCount, pendingCount),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 16),
 
                             // 2. EXECUTIVE KPI CARDS
                             _buildKpiMetrics(totalCount, pendingCount, completedCount),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 20),
 
                             // 3. SEARCH & FILTER CONTROLS
                             _buildFilterBar(),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 16),
 
                             // 4. ASSIGNMENTS GRID
                             filteredAssignments.isEmpty
@@ -3092,7 +3112,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                                         return Column(
                                           children: filteredAssignments.map((assignment) {
                                             return Padding(
-                                              padding: const EdgeInsets.only(bottom: 16),
+                                              padding: const EdgeInsets.only(bottom: 14),
                                               child: _buildAssignmentCard(assignment),
                                             );
                                           }).toList(),
@@ -3100,7 +3120,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                                       }
                                     },
                                   ),
-                            const SizedBox(height: 40),
+                            const SizedBox(height: 36),
                           ],
                         ),
                       ),
@@ -3110,115 +3130,127 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
     );
   }
 
-  // 1. HERO BANNER
+  // 1. HERO BANNER (MOBILE + DESKTOP RESPONSIVE)
   Widget _buildHeroBanner(int total, int pending) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0F172A).withOpacity(0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Text(
-                  'HITAM ACADEMIC PORTAL',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                  ),
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(isMobile ? 16 : 22),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0F172A).withOpacity(0.12),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
               ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: pending > 0
-                      ? const Color(0xFFF59E0B).withOpacity(0.2)
-                      : const Color(0xFF10B981).withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: pending > 0
-                        ? const Color(0xFFF59E0B)
-                        : const Color(0xFF10B981),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      pending > 0 ? Icons.warning_amber_rounded : Icons.check_circle_rounded,
-                      size: 14,
-                      color: pending > 0 ? const Color(0xFFF59E0B) : const Color(0xFF10B981),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                alignment: WrapAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      pending > 0 ? '$pending Tasks Require Action' : 'All Tasks Submitted',
+                    child: const Text(
+                      'HITAM ACADEMIC PORTAL',
                       style: TextStyle(
-                        color: pending > 0 ? const Color(0xFFFCD34D) : const Color(0xFF6EE7B7),
-                        fontSize: 12,
+                        color: Colors.white70,
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
+                        letterSpacing: 1.1,
                       ),
                     ),
-                  ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: pending > 0
+                          ? const Color(0xFFF59E0B).withOpacity(0.2)
+                          : const Color(0xFF10B981).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: pending > 0
+                            ? const Color(0xFFF59E0B)
+                            : const Color(0xFF10B981),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          pending > 0 ? Icons.warning_amber_rounded : Icons.check_circle_rounded,
+                          size: 13,
+                          color: pending > 0 ? const Color(0xFFF59E0B) : const Color(0xFF10B981),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          pending > 0 ? '$pending Tasks Require Action' : 'All Tasks Submitted',
+                          style: TextStyle(
+                            color: pending > 0 ? const Color(0xFFFCD34D) : const Color(0xFF6EE7B7),
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Course Deliverables & Submissions',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: isMobile ? 18 : 22,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.4,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Roll No: 22K91A0501 • B.Tech CSE (Year 4, Sem 7)',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.75),
+                  fontSize: isMobile ? 12 : 13,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          const Text(
-            'Course Deliverables & Lab Submissions',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.5,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Student Roll: 22K91A0501 • B.Tech Computer Science & Engineering (Year 4, Sem 7)',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.75),
-              fontSize: 13,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  // 2. EXECUTIVE KPI CARDS
+  // 2. EXECUTIVE KPI CARDS (RESPONSIVE BREAKPOINT FOR MOBILE & DESKTOP)
   Widget _buildKpiMetrics(int total, int pending, int completed) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < 650;
-        final cardWidth = isNarrow
-            ? (constraints.maxWidth - 12) / 2
-            : (constraints.maxWidth - 36) / 4;
+        // >= 880px: 4 cards in one row
+        // < 880px: 2 cards in one row (mobile & tablet)
+        final bool isDesktop = constraints.maxWidth >= 880;
+        final bool isNarrow = constraints.maxWidth < 580;
+        final double cardWidth = isDesktop
+            ? (constraints.maxWidth - 36) / 4
+            : (constraints.maxWidth - 12) / 2;
 
         return Wrap(
           spacing: 12,
@@ -3232,6 +3264,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
               iconColor: const Color(0xFF2563EB),
               badgeColor: const Color(0xFFEFF6FF),
               width: cardWidth,
+              isNarrow: isNarrow,
             ),
             _buildStatCard(
               title: 'Pending Work',
@@ -3241,6 +3274,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
               iconColor: const Color(0xFFD97706),
               badgeColor: const Color(0xFFFEF3C7),
               width: cardWidth,
+              isNarrow: isNarrow,
             ),
             _buildStatCard(
               title: 'Completed',
@@ -3250,15 +3284,17 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
               iconColor: const Color(0xFF059669),
               badgeColor: const Color(0xFFECFDF5),
               width: cardWidth,
+              isNarrow: isNarrow,
             ),
             _buildStatCard(
-              title: 'Academic Standing',
+              title: 'Standing',
               value: '96%',
               subtitle: 'Grade A+ average score',
               icon: Icons.auto_awesome_rounded,
               iconColor: const Color(0xFF7C3AED),
               badgeColor: const Color(0xFFF3E8FF),
               width: cardWidth,
+              isNarrow: isNarrow,
             ),
           ],
         );
@@ -3274,10 +3310,11 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
     required Color iconColor,
     required Color badgeColor,
     required double width,
+    required bool isNarrow,
   }) {
     return Container(
       width: width,
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(isNarrow ? 12 : 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -3285,8 +3322,8 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -3296,39 +3333,46 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF64748B),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: isNarrow ? 11 : 12,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF64748B),
+                  ),
                 ),
               ),
+              const SizedBox(width: 4),
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(isNarrow ? 6 : 8),
                 decoration: BoxDecoration(
                   color: badgeColor,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: iconColor, size: 18),
+                child: Icon(icon, color: iconColor, size: isNarrow ? 16 : 18),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: isNarrow ? 6 : 10),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 24,
+            style: TextStyle(
+              fontSize: isNarrow ? 20 : 24,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF0F172A),
+              color: const Color(0xFF0F172A),
             ),
           ),
           const SizedBox(height: 2),
           Text(
             subtitle,
-            style: const TextStyle(
-              fontSize: 11,
-              color: Color(0xFF94A3B8),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: isNarrow ? 10 : 11,
+              color: const Color(0xFF94A3B8),
             ),
           ),
         ],
@@ -3336,22 +3380,25 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
     );
   }
 
-  // 3. SEARCH & FILTER CONTROLS
+  // 3. SEARCH & FILTER CONTROLS (MOBILE-RESPONSIVE FLOW)
   Widget _buildFilterBar() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        children: [
-          Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isMobile = constraints.maxWidth < 650;
+
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Search Field
-              Expanded(
-                child: TextField(
+              if (isMobile) ...[
+                // Mobile Search Bar (Full Width)
+                TextField(
                   controller: _searchController,
                   onChanged: (val) {
                     setState(() {
@@ -3359,12 +3406,12 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                     });
                   },
                   decoration: InputDecoration(
-                    hintText: 'Search by assignment title, course, or faculty...',
-                    hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-                    prefixIcon: const Icon(Icons.search, size: 20, color: Color(0xFF64748B)),
+                    hintText: 'Search by title, course, faculty...',
+                    hintStyle: TextStyle(fontSize: 12, color: Colors.grey.shade400),
+                    prefixIcon: const Icon(Icons.search, size: 18, color: Color(0xFF64748B)),
                     suffixIcon: searchQuery.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear, size: 18),
+                            icon: const Icon(Icons.clear, size: 16),
                             onPressed: () {
                               _searchController.clear();
                               setState(() {
@@ -3375,67 +3422,148 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                         : null,
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide.none,
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              // Subject filter dropdown
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: selectedSubject,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF334155),
+                const SizedBox(height: 10),
+                // Mobile Subject Filter Dropdown (Full Width)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: selectedSubject,
+                      isExpanded: true,
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF334155),
+                      ),
+                      items: availableSubjects.map((s) {
+                        return DropdownMenuItem<String>(
+                          value: s,
+                          child: Text(s, overflow: TextOverflow.ellipsis),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() {
+                            selectedSubject = val;
+                          });
+                        }
+                      },
                     ),
-                    items: availableSubjects.map((s) {
-                      return DropdownMenuItem<String>(
-                        value: s,
-                        child: Text(s),
-                      );
-                    }).toList(),
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() {
-                          selectedSubject = val;
-                        });
-                      }
-                    },
                   ),
                 ),
+              ] else ...[
+                // Desktop Search + Dropdown Row
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: (val) {
+                          setState(() {
+                            searchQuery = val.trim();
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Search by assignment title, course, or faculty...',
+                          hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                          prefixIcon: const Icon(Icons.search, size: 20, color: Color(0xFF64748B)),
+                          suffixIcon: searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, size: 18),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {
+                                      searchQuery = '';
+                                    });
+                                  },
+                                )
+                              : null,
+                          filled: true,
+                          fillColor: const Color(0xFFF8FAFC),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedSubject,
+                          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF334155),
+                          ),
+                          items: availableSubjects.map((s) {
+                            return DropdownMenuItem<String>(
+                              value: s,
+                              child: Text(s),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() {
+                                selectedSubject = val;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 10),
+              // Horizontal Scrollable Status Tabs (Swipeable on Mobile Phones)
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    _buildFilterPill('All', assignments.length),
+                    const SizedBox(width: 8),
+                    _buildFilterPill('Pending',
+                        assignments.where((a) => a['status'] == 'Pending').length),
+                    const SizedBox(width: 8),
+                    _buildFilterPill(
+                        'Completed',
+                        assignments
+                            .where((a) =>
+                                a['status'] == 'Completed' ||
+                                a['status'] == 'Submitted')
+                            .length),
+                  ],
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          // Status Tabs
-          Row(
-            children: [
-              _buildFilterPill('All', assignments.length),
-              const SizedBox(width: 8),
-              _buildFilterPill('Pending', assignments.where((a) => a['status'] == 'Pending').length),
-              const SizedBox(width: 8),
-              _buildFilterPill(
-                  'Completed',
-                  assignments
-                      .where((a) => a['status'] == 'Completed' || a['status'] == 'Submitted')
-                      .length),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -3450,17 +3578,18 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
       borderRadius: BorderRadius.circular(8),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                 color: isSelected ? Colors.white : const Color(0xFF475569),
               ),
@@ -3475,7 +3604,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
               child: Text(
                 '$count',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: FontWeight.bold,
                   color: isSelected ? Colors.white : const Color(0xFF334155),
                 ),
@@ -3487,15 +3616,15 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
     );
   }
 
-  // 4. ASSIGNMENT CARD
+  // 4. ASSIGNMENT CARD (FLEXIBLE WRAP FOR ZERO OVERFLOW)
   Widget _buildAssignmentCard(Map<String, dynamic> assignment) {
     final isPending = assignment['status'] == 'Pending';
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isPending ? const Color(0xFFE2E8F0) : const Color(0xFFD1FAE5),
           width: isPending ? 1 : 1.5,
@@ -3503,35 +3632,39 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row: Subject Badge + Status Badge
+          // Header Row: Subject Badge + Status Badge (with Expanded protection)
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  '${assignment['subject']} • ${assignment['code'] ?? 'CS301PC'}',
-                  style: const TextStyle(
-                    color: Color(0xFF2563EB),
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${assignment['subject']} • ${assignment['code'] ?? 'CS301PC'}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFF2563EB),
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: isPending ? const Color(0xFFFEF3C7) : const Color(0xFFECFDF5),
                   borderRadius: BorderRadius.circular(20),
@@ -3541,14 +3674,14 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                   children: [
                     Icon(
                       isPending ? Icons.schedule_rounded : Icons.check_circle_rounded,
-                      size: 13,
+                      size: 12,
                       color: isPending ? const Color(0xFFD97706) : const Color(0xFF059669),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       isPending ? 'Pending' : 'Completed',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                         color: isPending ? const Color(0xFFB45309) : const Color(0xFF047857),
                       ),
@@ -3558,19 +3691,19 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           // Title
           Text(
             assignment['title'] ?? 'Assignment Title',
             style: const TextStyle(
-              fontSize: 17,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Color(0xFF0F172A),
               height: 1.3,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
 
           // Description snippet
           Text(
@@ -3584,38 +3717,42 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
               height: 1.4,
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
 
           // Metadata Row: Faculty & Points
           Row(
             children: [
               Icon(Icons.person_outline_rounded, size: 14, color: Colors.grey.shade600),
               const SizedBox(width: 4),
-              Text(
-                assignment['faculty'] ?? 'Department Faculty',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+              Expanded(
+                child: Text(
+                  assignment['faculty'] ?? 'Department Faculty',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
+                ),
               ),
-              const Spacer(),
-              Icon(Icons.military_tech_outlined, size: 15, color: Colors.grey.shade600),
+              const SizedBox(width: 6),
+              Icon(Icons.military_tech_outlined, size: 14, color: Colors.grey.shade600),
               const SizedBox(width: 4),
               Text(
-                '${assignment['points'] ?? 25} Points',
+                '${assignment['points'] ?? 25} Pts',
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF334155),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           // Due Date & Urgency Callout Bar
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
               color: isPending ? const Color(0xFFFFFBEB) : const Color(0xFFF0FDF4),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: isPending ? const Color(0xFFFDE68A) : const Color(0xFFBBF7D0),
               ),
@@ -3624,17 +3761,19 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
               children: [
                 Icon(
                   isPending ? Icons.alarm_rounded : Icons.verified_rounded,
-                  size: 15,
+                  size: 14,
                   color: isPending ? const Color(0xFFD97706) : const Color(0xFF059669),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     isPending
                         ? 'Due: ${assignment['dueDate']} (${assignment['urgency'] ?? 'Due Soon'})'
                         : '${assignment['urgency'] ?? 'Submitted'} • Score: ${assignment['score'] ?? '24/25'}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: isPending ? const Color(0xFF92400E) : const Color(0xFF166534),
                     ),
@@ -3643,7 +3782,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
           // Action Buttons
           Row(
@@ -3651,11 +3790,11 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => _showBriefDialog(context, assignment),
-                  icon: const Icon(Icons.info_outline_rounded, size: 15),
-                  label: const Text('Brief & Rubric', style: TextStyle(fontSize: 12)),
+                  icon: const Icon(Icons.info_outline_rounded, size: 14),
+                  label: const Text('Brief', style: TextStyle(fontSize: 11)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF334155),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     side: const BorderSide(color: Color(0xFFCBD5E1)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -3663,7 +3802,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {
@@ -3675,17 +3814,17 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                   },
                   icon: Icon(
                     isPending ? Icons.upload_file_rounded : Icons.grade_rounded,
-                    size: 15,
+                    size: 14,
                   ),
                   label: Text(
-                    isPending ? 'Submit Work' : 'Feedback',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    isPending ? 'Submit' : 'Feedback',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
                         isPending ? const Color(0xFF2563EB) : const Color(0xFF059669),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -3703,7 +3842,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
   Widget _buildEmptyState() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -3711,12 +3850,12 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
       ),
       child: Column(
         children: [
-          Icon(Icons.search_off_rounded, size: 48, color: Colors.grey.shade400),
+          Icon(Icons.search_off_rounded, size: 44, color: Colors.grey.shade400),
           const SizedBox(height: 12),
           const Text(
             'No matching assignments found',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: FontWeight.bold,
               color: Color(0xFF334155),
             ),
@@ -3724,9 +3863,10 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
           const SizedBox(height: 6),
           Text(
             'Try clearing your search query or switching the status filter.',
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           ElevatedButton(
             onPressed: () {
               _searchController.clear();
