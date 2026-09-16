@@ -4,6 +4,7 @@ const notificationController = require("../controllers/notificationController");
 
 // Feed & Unread count
 router.get("/", notificationController.getNotifications);
+router.get("/poll", notificationController.pollNotifications);
 
 // Dispatch new notification (Admin / System / Faculty)
 router.post("/", notificationController.sendNotification);

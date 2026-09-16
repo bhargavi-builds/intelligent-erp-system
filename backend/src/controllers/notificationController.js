@@ -18,18 +18,26 @@ function getRelativeTime(dateStr) {
     }
 }
 
-// 1. GET Notifications Feed
+// 1. GET Notifications Feed (Role-Based & User-Targeted)
 exports.getNotifications = async (req, res) => {
     try {
-        const userId = req.query.userId || "STU001";
+        const role = (req.query.role || "all").toLowerCase();
+        const userId = req.query.userId || "";
         const type = req.query.type;
 
         if (isConfigured && supabase) {
             let query = supabase
                 .from("notifications")
                 .select("*")
-                .or(`user_id.eq.${userId},user_id.is.null`)
                 .order("created_at", { ascending: false });
+
+            if (role !== "all" && userId) {
+                query = query.or(`target_role.eq.${role},target_role.eq.all,user_id.eq.${userId},user_id.is.null`);
+            } else if (role !== "all") {
+                query = query.or(`target_role.eq.${role},target_role.eq.all,user_id.is.null`);
+            } else if (userId) {
+                query = query.or(`user_id.eq.${userId},user_id.is.null`);
+            }
 
             if (type && type !== "All") {
                 query = query.eq("type", type.toLowerCase());
@@ -40,6 +48,7 @@ exports.getNotifications = async (req, res) => {
                 const list = data.map(n => ({
                     id: n.id.toString(),
                     userId: n.user_id,
+                    targetRole: n.target_role || "all",
                     title: n.title,
                     body: n.body || n.message || "",
                     type: n.type || "general",
@@ -54,13 +63,20 @@ exports.getNotifications = async (req, res) => {
                 return res.json({
                     notifications: list,
                     unreadCount,
-                    total: list.length
+                    total: list.length,
+                    role
                 });
             }
         }
 
         // Fallback to in-memory store
-        let list = [...mockDb.notifications];
+        let list = mockDb.notifications.filter(n => {
+            const notifRole = (n.targetRole || "all").toLowerCase();
+            const matchRole = role === "all" || notifRole === "all" || notifRole === role;
+            const matchUser = !userId || !n.userId || n.userId === userId;
+            return matchRole && matchUser;
+        });
+
         if (type && type !== "All") {
             list = list.filter(n => n.type.toLowerCase() === type.toLowerCase());
         }
@@ -69,22 +85,24 @@ exports.getNotifications = async (req, res) => {
         return res.json({
             notifications: list,
             unreadCount,
-            total: list.length
+            total: list.length,
+            role
         });
     } catch (err) {
         console.error("Error in getNotifications:", err);
         return res.json({
             notifications: mockDb.notifications,
             unreadCount: mockDb.notifications.filter(n => !n.isRead).length,
-            total: mockDb.notifications.length
+            total: mockDb.notifications.length,
+            role: req.query.role || "all"
         });
     }
 };
 
-// 2. SEND Notification (Broadcast or Targeted)
+// 2. SEND Notification (Broadcast to Role or Specific User)
 exports.sendNotification = async (req, res) => {
     try {
-        const { title, body, message, type, targetScreen, priority, userId } = req.body;
+        const { title, body, message, type, targetScreen, priority, userId, targetRole } = req.body;
 
         if (!title) {
             return res.status(400).json({ error: "Notification title is required" });
@@ -94,7 +112,8 @@ exports.sendNotification = async (req, res) => {
         const notifType = (type || "general").toLowerCase();
         const screen = targetScreen || notifType;
         const notifPriority = priority || "normal";
-        const targetUserId = userId || "STU001";
+        const role = (targetRole || "all").toLowerCase();
+        const targetUserId = userId || null;
         const now = new Date().toISOString();
 
         if (isConfigured && supabase) {
@@ -102,6 +121,7 @@ exports.sendNotification = async (req, res) => {
                 .from("notifications")
                 .insert([{
                     user_id: targetUserId,
+                    target_role: role,
                     title,
                     body: notificationContent,
                     type: notifType,
@@ -115,10 +135,11 @@ exports.sendNotification = async (req, res) => {
 
             if (!error && data) {
                 return res.status(201).json({
-                    message: "Notification sent and dispatched!",
+                    message: "Role-targeted notification sent and dispatched in real-time!",
                     notification: {
                         id: data.id.toString(),
                         userId: data.user_id,
+                        targetRole: data.target_role,
                         title: data.title,
                         body: data.body,
                         type: data.type,
@@ -128,15 +149,16 @@ exports.sendNotification = async (req, res) => {
                         createdAt: data.created_at,
                         timeAgo: "Just now"
                     },
-                    pushStatus: "queued_for_background_delivery"
+                    pushStatus: "dispatched_realtime"
                 });
             }
         }
 
         // Mock in-memory storage
         const newNotif = {
-            id: `NOTIF${String(mockDb.notifications.length + 1).padStart(3, "0")}`,
+            id: `NOTIF_${Date.now()}`,
             userId: targetUserId,
+            targetRole: role,
             title,
             body: notificationContent,
             type: notifType,
@@ -149,9 +171,9 @@ exports.sendNotification = async (req, res) => {
         mockDb.notifications.unshift(newNotif);
 
         return res.status(201).json({
-            message: "Notification sent successfully!",
+            message: "Role-targeted notification dispatched in real-time!",
             notification: newNotif,
-            pushStatus: "queued_for_background_delivery"
+            pushStatus: "dispatched_realtime"
         });
     } catch (err) {
         console.error("Error in sendNotification:", err);
@@ -159,10 +181,10 @@ exports.sendNotification = async (req, res) => {
     }
 };
 
-// 3. REGISTER Device Push Token (FCM / APNs)
+// 3. REGISTER Device Push Token with Role (FCM / APNs)
 exports.registerDeviceToken = async (req, res) => {
     try {
-        const { userId, token, platform } = req.body;
+        const { userId, role, email, token, platform } = req.body || {};
 
         if (!token) {
             return res.status(400).json({ error: "Device push token is required" });
@@ -170,20 +192,30 @@ exports.registerDeviceToken = async (req, res) => {
 
         const now = new Date().toISOString();
         const clientUserId = userId || "STU001";
+        const clientRole = (role || "student").toLowerCase();
+        const clientEmail = email || null;
         const clientPlatform = platform || "android";
 
         if (isConfigured && supabase) {
             const { error } = await supabase
                 .from("device_tokens")
                 .upsert(
-                    { user_id: clientUserId, token, platform: clientPlatform, updated_at: now },
+                    {
+                        user_id: clientUserId,
+                        role: clientRole,
+                        email: clientEmail,
+                        token,
+                        platform: clientPlatform,
+                        updated_at: now
+                    },
                     { onConflict: "token" }
                 );
 
             if (!error) {
                 return res.json({
-                    message: "Device token registered successfully in Supabase!",
+                    message: "Device token registered with role in Supabase!",
                     token,
+                    role: clientRole,
                     platform: clientPlatform
                 });
             }
@@ -192,10 +224,15 @@ exports.registerDeviceToken = async (req, res) => {
         // Mock fallback
         const existingIdx = mockDb.deviceTokens.findIndex(d => d.token === token);
         if (existingIdx >= 0) {
+            mockDb.deviceTokens[existingIdx].role = clientRole;
+            mockDb.deviceTokens[existingIdx].userId = clientUserId;
+            mockDb.deviceTokens[existingIdx].email = clientEmail;
             mockDb.deviceTokens[existingIdx].lastActive = now;
         } else {
             mockDb.deviceTokens.push({
                 userId: clientUserId,
+                role: clientRole,
+                email: clientEmail,
                 token,
                 platform: clientPlatform,
                 lastActive: now
@@ -203,8 +240,9 @@ exports.registerDeviceToken = async (req, res) => {
         }
 
         return res.json({
-            message: "Device token registered successfully!",
+            message: "Device token registered successfully with role!",
             token,
+            role: clientRole,
             platform: clientPlatform
         });
     } catch (err) {
@@ -213,7 +251,34 @@ exports.registerDeviceToken = async (req, res) => {
     }
 };
 
-// 4. MARK Notification As Read
+// 4. POLL Real-Time Delta Notifications (Zero-Delay Client Sync)
+exports.pollNotifications = async (req, res) => {
+    try {
+        const role = (req.query.role || "all").toLowerCase();
+        const userId = req.query.userId || "";
+        const since = req.query.since;
+        const sinceTime = since ? new Date(since).getTime() : 0;
+
+        const newAlerts = mockDb.notifications.filter(n => {
+            const notifRole = (n.targetRole || "all").toLowerCase();
+            const matchRole = role === "all" || notifRole === "all" || notifRole === role;
+            const matchUser = !userId || !n.userId || n.userId === userId;
+            const notifTime = new Date(n.createdAt).getTime();
+            return matchRole && matchUser && notifTime > sinceTime;
+        });
+
+        return res.json({
+            newAlerts,
+            count: newAlerts.length,
+            timestamp: new Date().toISOString()
+        });
+    } catch (err) {
+        console.error("Error in pollNotifications:", err);
+        return res.status(500).json({ error: "Failed to poll notifications" });
+    }
+};
+
+// 5. MARK Notification As Read
 exports.markAsRead = async (req, res) => {
     try {
         const notifId = req.params.id;
@@ -237,20 +302,27 @@ exports.markAsRead = async (req, res) => {
     }
 };
 
-// 5. MARK ALL Notifications As Read
+// 6. MARK ALL Notifications As Read (Role or User)
 exports.markAllAsRead = async (req, res) => {
     try {
-        const userId = (req.body && req.body.userId) || "STU001";
+        const userId = (req.body && req.body.userId) || "";
+        const role = (req.body && req.body.role) || "";
 
         if (isConfigured && supabase) {
-            await supabase
-                .from("notifications")
-                .update({ is_read: true })
-                .or(`user_id.eq.${userId},user_id.is.null`);
+            let updateQuery = supabase.from("notifications").update({ is_read: true });
+            if (role) {
+                updateQuery = updateQuery.or(`target_role.eq.${role},target_role.eq.all`);
+            } else if (userId) {
+                updateQuery = updateQuery.or(`user_id.eq.${userId},user_id.is.null`);
+            }
+            await updateQuery;
         }
 
         mockDb.notifications.forEach(n => {
-            if (!n.userId || n.userId === userId) {
+            const notifRole = (n.targetRole || "all").toLowerCase();
+            const matchRole = !role || role === "all" || notifRole === "all" || notifRole === role.toLowerCase();
+            const matchUser = !userId || !n.userId || n.userId === userId;
+            if (matchRole && matchUser) {
                 n.isRead = true;
             }
         });

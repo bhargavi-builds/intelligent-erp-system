@@ -142,6 +142,15 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final role = data['user']?['role']?.toString().toLowerCase() ?? 'student';
+        final userId = data['user']?['id']?.toString() ?? 'STU001';
+        final userEmail = data['user']?['email']?.toString() ?? email;
+
+        // Sync active session with NotificationService for zero-delay role alerts
+        NotificationService().setUserSession(
+          role: role,
+          userId: userId,
+          email: userEmail,
+        );
 
         if (!mounted) return;
 
@@ -382,6 +391,11 @@ class RolePage extends StatelessWidget {
               icon: Icons.school,
               title: 'Student',
               onPressed: () {
+                NotificationService().setUserSession(
+                  role: 'student',
+                  userId: 'STU001',
+                  email: 'bhargavi@hitam.edu',
+                );
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -395,6 +409,11 @@ class RolePage extends StatelessWidget {
               icon: Icons.person,
               title: 'Faculty',
               onPressed: () {
+                NotificationService().setUserSession(
+                  role: 'faculty',
+                  userId: 'FAC001',
+                  email: 'ramesh@hitam.edu',
+                );
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -408,6 +427,11 @@ class RolePage extends StatelessWidget {
               icon: Icons.family_restroom,
               title: 'Parent',
               onPressed: () {
+                NotificationService().setUserSession(
+                  role: 'parent',
+                  userId: 'PAR001',
+                  email: 'narayana@hitam.edu',
+                );
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -421,6 +445,11 @@ class RolePage extends StatelessWidget {
               icon: Icons.admin_panel_settings,
               title: 'Administrator',
               onPressed: () {
+                NotificationService().setUserSession(
+                  role: 'admin',
+                  userId: 'ADM001',
+                  email: 'admin@hitam.edu',
+                );
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -545,7 +574,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
       appBar: AppBar(
         title: const Text('Student Dashboard'),
         actions: const [
-          NotificationBellIcon(),
+          NotificationBellIcon(role: 'student'),
         ],
       ),
       body: isLoading
@@ -2076,7 +2105,9 @@ class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
 // ============================================================
 
 class NotificationBellIcon extends StatefulWidget {
-  const NotificationBellIcon({super.key});
+  final String? role;
+  final String? userId;
+  const NotificationBellIcon({super.key, this.role, this.userId});
 
   @override
   State<NotificationBellIcon> createState() => _NotificationBellIconState();
@@ -2091,10 +2122,20 @@ class _NotificationBellIconState extends State<NotificationBellIcon> {
     fetchUnreadCount();
   }
 
+  @override
+  void didUpdateWidget(covariant NotificationBellIcon oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.role != widget.role || oldWidget.userId != widget.userId) {
+      fetchUnreadCount();
+    }
+  }
+
   Future<void> fetchUnreadCount() async {
     try {
+      final effectiveRole = (widget.role ?? NotificationService().currentRole).toLowerCase();
+      final effectiveUser = widget.userId ?? NotificationService().currentUserId;
       final res = await http
-          .get(Uri.parse('${ApiConfig.baseUrl}/api/notifications?userId=STU001'))
+          .get(Uri.parse('${ApiConfig.baseUrl}/api/notifications?role=$effectiveRole&userId=$effectiveUser'))
           .timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -2107,7 +2148,7 @@ class _NotificationBellIconState extends State<NotificationBellIcon> {
     } catch (_) {
       if (mounted) {
         setState(() {
-          unreadCount = 2;
+          unreadCount = 0;
         });
       }
     }
@@ -2115,6 +2156,8 @@ class _NotificationBellIconState extends State<NotificationBellIcon> {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveRole = widget.role ?? NotificationService().currentRole;
+
     return Padding(
       padding: const EdgeInsets.only(right: 6),
       child: Stack(
@@ -2122,7 +2165,7 @@ class _NotificationBellIconState extends State<NotificationBellIcon> {
         alignment: Alignment.center,
         children: [
           IconButton(
-            tooltip: 'Campus Notifications',
+            tooltip: '$effectiveRole Notifications',
             icon: Icon(
               unreadCount > 0
                   ? Icons.notifications_active_rounded
@@ -2135,7 +2178,9 @@ class _NotificationBellIconState extends State<NotificationBellIcon> {
               await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const NotificationsScreen(),
+                  builder: (context) => NotificationsScreen(
+                    initialRole: effectiveRole,
+                  ),
                 ),
               );
               fetchUnreadCount();
@@ -2178,7 +2223,8 @@ class _NotificationBellIconState extends State<NotificationBellIcon> {
 // ============================================================
 
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({super.key});
+  final String? initialRole;
+  const NotificationsScreen({super.key, this.initialRole});
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
@@ -2187,32 +2233,49 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   bool isLoading = true;
   String selectedFilter = 'All';
+  late String activeRole;
   List<Map<String, dynamic>> notifications = [];
 
   final List<Map<String, dynamic>> _fallbackNotifications = [
     {
-      'id': 'NOTIF001',
+      'id': 'NOTIF_STU_001',
       'userId': 'STU001',
+      'targetRole': 'student',
+      'title': 'Daily Attendance Recorded: Present',
+      'body':
+          'Your attendance for Computer Networks was recorded as Present. Current semester aggregate: 85%.',
+      'type': 'attendance',
+      'targetScreen': 'attendance',
+      'priority': 'normal',
+      'isRead': false,
+      'createdAt':
+          DateTime.now().subtract(const Duration(minutes: 10)).toIso8601String(),
+      'timeAgo': '10 mins ago'
+    },
+    {
+      'id': 'NOTIF_STU_002',
+      'userId': 'STU001',
+      'targetRole': 'student',
       'title': 'Assignment Due in 24 Hours',
       'body':
-          'Binary Search Implementation in Data Structures is due tomorrow at 11:59 PM. Please upload your code proofs.',
+          'Perceptron Implementation in Neural Networks is due tomorrow at 11:59 PM. Please upload your code proofs.',
       'type': 'assignment',
       'targetScreen': 'assignments',
       'priority': 'urgent',
       'isRead': false,
-      'createdAt': DateTime.now()
-          .subtract(const Duration(minutes: 25))
-          .toIso8601String(),
-      'timeAgo': '25 mins ago'
+      'createdAt':
+          DateTime.now().subtract(const Duration(minutes: 35)).toIso8601String(),
+      'timeAgo': '35 mins ago'
     },
     {
-      'id': 'NOTIF002',
+      'id': 'NOTIF_STU_003',
       'userId': 'STU001',
-      'title': 'Campus Placement Registration Open',
+      'targetRole': 'student',
+      'title': 'Tuition Fee Due Reminder: ₹25,000',
       'body':
-          'TCS & Infosys recruitment drives are accepting student applications. Register before Friday 5:00 PM.',
-      'type': 'announcement',
-      'targetScreen': 'announcements',
+          'Second installment of odd semester tuition fee (₹25,000) is due by 30th September without penalty.',
+      'type': 'fee',
+      'targetScreen': 'fees',
       'priority': 'high',
       'isRead': false,
       'createdAt':
@@ -2220,38 +2283,71 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       'timeAgo': '2 hours ago'
     },
     {
-      'id': 'NOTIF003',
-      'userId': 'STU001',
-      'title': 'Mid-Term Examination Hall Tickets Released',
+      'id': 'NOTIF_PAR_001',
+      'userId': 'PAR001',
+      'targetRole': 'parent',
+      'title': 'Ward Daily Attendance: Present in All Classes',
       'body':
-          'Odd semester examination schedule is published. Verify your assigned room number and session timing.',
-      'type': 'exam',
-      'targetScreen': 'exams',
-      'priority': 'high',
-      'isRead': true,
+          'Bhargavi (22K91A0501) was marked Present for all 4 lectures today. Aggregate attendance: 85%.',
+      'type': 'attendance',
+      'targetScreen': 'attendance',
+      'priority': 'normal',
+      'isRead': false,
       'createdAt':
-          DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
-      'timeAgo': 'Yesterday'
+          DateTime.now().subtract(const Duration(minutes: 15)).toIso8601String(),
+      'timeAgo': '15 mins ago'
     },
     {
-      'id': 'NOTIF004',
-      'userId': 'STU001',
-      'title': 'Tuition Fee Concession Notice',
+      'id': 'NOTIF_PAR_002',
+      'userId': 'PAR001',
+      'targetRole': 'parent',
+      'title': 'Fee Reminder: ₹25,000 Balance Pending',
       'body':
-          'Merit-cum-means scholarship applications are open until August 30 at the accounts administration office.',
+          'Tuition installment of ₹25,000 for academic year 2025-2026 is due on 30th September.',
       'type': 'fee',
       'targetScreen': 'fees',
-      'priority': 'normal',
-      'isRead': true,
+      'priority': 'urgent',
+      'isRead': false,
       'createdAt':
-          DateTime.now().subtract(const Duration(days: 3)).toIso8601String(),
-      'timeAgo': '3 days ago'
+          DateTime.now().subtract(const Duration(minutes: 45)).toIso8601String(),
+      'timeAgo': '45 mins ago'
+    },
+    {
+      'id': 'NOTIF_FAC_001',
+      'userId': 'FAC001',
+      'targetRole': 'faculty',
+      'title': '35 Assignment Submissions Pending Review',
+      'body':
+          '35 students submitted "Perceptron Implementation" for Neural Networks. Grade submissions before Friday.',
+      'type': 'assignment',
+      'targetScreen': 'assignments',
+      'priority': 'urgent',
+      'isRead': false,
+      'createdAt':
+          DateTime.now().subtract(const Duration(minutes: 20)).toIso8601String(),
+      'timeAgo': '20 mins ago'
+    },
+    {
+      'id': 'NOTIF_ADM_001',
+      'userId': 'ADM001',
+      'targetRole': 'admin',
+      'title': 'Daily Tuition Fee Collection Summary',
+      'body':
+          '₹4,85,000 received today in semester fee settlements. Campus collection milestone reached 82%.',
+      'type': 'fee',
+      'targetScreen': 'fees',
+      'priority': 'high',
+      'isRead': false,
+      'createdAt':
+          DateTime.now().subtract(const Duration(minutes: 30)).toIso8601String(),
+      'timeAgo': '30 mins ago'
     }
   ];
 
   @override
   void initState() {
     super.initState();
+    activeRole = (widget.initialRole ?? NotificationService().currentRole).toLowerCase();
     fetchNotifications();
   }
 
@@ -2266,12 +2362,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final type = (item['type'] ?? 'general').toString().toLowerCase();
     final targetScreen = (item['targetScreen'] ?? type).toString().toLowerCase();
     final priority = (item['priority'] ?? 'normal').toString().toLowerCase();
+    final targetRole = (item['targetRole'] ?? item['target_role'] ?? 'all')
+        .toString()
+        .toLowerCase();
     final isRead = item['isRead'] == true || item['is_read'] == true;
     final timeAgo = (item['timeAgo'] ?? 'Recent').toString();
 
     return {
       'id': id,
       'userId': item['userId'] ?? item['user_id'] ?? 'STU001',
+      'targetRole': targetRole,
       'title': title,
       'body': body,
       'type': type,
@@ -2289,7 +2389,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     try {
       final res = await http
-          .get(Uri.parse('${ApiConfig.baseUrl}/api/notifications?userId=STU001'))
+          .get(Uri.parse(
+              '${ApiConfig.baseUrl}/api/notifications?role=$activeRole&userId=${NotificationService().currentUserId}'))
           .timeout(const Duration(seconds: 5));
 
       if (res.statusCode == 200) {
@@ -2311,16 +2412,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         }
       }
 
+      // Filter fallback based on active role
+      final filteredFallback = _fallbackNotifications.where((n) {
+        final r = (n['targetRole'] ?? 'all').toString().toLowerCase();
+        return r == 'all' || r == activeRole;
+      }).toList();
+
       if (mounted) {
         setState(() {
-          notifications = _fallbackNotifications;
+          notifications = filteredFallback;
           isLoading = false;
         });
       }
     } catch (_) {
+      final filteredFallback = _fallbackNotifications.where((n) {
+        final r = (n['targetRole'] ?? 'all').toString().toLowerCase();
+        return r == 'all' || r == activeRole;
+      }).toList();
+
       if (mounted) {
         setState(() {
-          notifications = _fallbackNotifications;
+          notifications = filteredFallback;
           isLoading = false;
         });
       }
@@ -2329,7 +2441,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> markAsRead(String id) async {
     setState(() {
-      final item = notifications.firstWhere((n) => n['id'] == id, orElse: () => {});
+      final item =
+          notifications.firstWhere((n) => n['id'] == id, orElse: () => {});
       if (item.isNotEmpty) {
         item['isRead'] = true;
       }
@@ -2348,9 +2461,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('All notifications marked as read.'),
-        backgroundColor: Color(0xFF0F172A),
+      SnackBar(
+        content: Text('All $activeRole notifications marked as read.'),
+        backgroundColor: const Color(0xFF0F172A),
       ),
     );
 
@@ -2358,7 +2471,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       await http.put(
         Uri.parse('${ApiConfig.baseUrl}/api/notifications/read-all'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'userId': 'STU001'}),
+        body: jsonEncode({
+          'role': activeRole,
+          'userId': NotificationService().currentUserId,
+        }),
       );
     } catch (_) {}
   }
@@ -2368,25 +2484,37 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.alarm_on_rounded, color: Color(0xFF2563EB)),
-            SizedBox(width: 8),
-            Text('Simulate Background Alert', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Icon(Icons.alarm_on_rounded, color: Color(0xFF2563EB)),
+            const SizedBox(width: 8),
+            Text('Simulate 5s Background Push ($activeRole)',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ],
         ),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'This will schedule a native system tray & lockscreen push notification in 5 seconds.',
-              style: TextStyle(fontSize: 14, height: 1.4),
+              'This simulates a real-time $activeRole notification delivered outside the app in 5 seconds.',
+              style: const TextStyle(fontSize: 13.5, height: 1.4),
             ),
-            SizedBox(height: 12),
-            Text(
-              '👉 HOW TO TEST:\n1. Click "Start 5s Countdown"\n2. Immediately press Home or minimize this app\n3. Wait 5 seconds to see the system banner alert pop up outside the app!',
-              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                '👉 HOW TO TEST:\n1. Tap "Start 5s Countdown"\n2. Immediately press Home or minimize this app\n3. In 5s, the system banner alert will drop down in your notification tray with sound and vibration!',
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF0F172A),
+                    height: 1.4),
+              ),
             ),
           ],
         ),
@@ -2398,33 +2526,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-              NotificationService().triggerBackgroundSimulation(
-                title: '⏰ Assignment Deadline in 24 Hours',
-                body: 'Binary Search Implementation proofs are due tomorrow at 11:59 PM. Tap to submit.',
-                delaySeconds: 5,
-                payload: 'assignment',
-                type: 'assignment',
-              );
+              // Pick scenario based on active role
+              String scenario = 'attendance';
+              if (activeRole == 'parent') scenario = 'attendance';
+              if (activeRole == 'faculty') scenario = 'submissions';
+              if (activeRole == 'admin') scenario = 'finance';
 
-              // Also persist to backend
-              http.post(
-                Uri.parse('${ApiConfig.baseUrl}/api/notifications/send'),
-                headers: {'Content-Type': 'application/json'},
-                body: jsonEncode({
-                  'title': '⏰ Assignment Deadline in 24 Hours',
-                  'body': 'Binary Search Implementation proofs are due tomorrow at 11:59 PM.',
-                  'type': 'assignment',
-                  'priority': 'urgent',
-                }),
+              NotificationService().simulateRoleNotification(
+                role: activeRole,
+                scenario: scenario,
+                delaySeconds: 5,
               );
 
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
+                SnackBar(
                   content: Text(
-                    '⏳ Background push scheduled in 5 seconds! Minimize the app now to see it.',
+                    '⏳ 5s Background Push for $activeRole scheduled! Minimize app now to see notification.',
                   ),
-                  backgroundColor: Color(0xFF2563EB),
-                  duration: Duration(seconds: 5),
+                  backgroundColor: const Color(0xFF2563EB),
+                  duration: const Duration(seconds: 5),
                 ),
               );
             },
@@ -2439,36 +2559,173 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  void _triggerImmediateNotification() {
-    NotificationService().showNotification(
-      title: '🔔 HITAM Campus Alert',
-      body: 'New examination circular published by the Controller of Examinations.',
-      payload: 'exam',
-      type: 'exam',
-    );
+  void _openBroadcastDialog() {
+    final titleController = TextEditingController();
+    final bodyController = TextEditingController();
+    String targetRole = activeRole;
+    String priority = 'high';
+    String type = 'announcement';
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Instant native notification dispatched to system tray!'),
-        backgroundColor: Color(0xFF059669),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.campaign_rounded,
+                        color: Color(0xFF2563EB), size: 22),
+                  ),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text(
+                      'Broadcast Real-Time Notice',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text('Target Role:',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                children: ['all', 'student', 'parent', 'faculty', 'admin'].map((r) {
+                  final isSel = targetRole == r;
+                  return ChoiceChip(
+                    label: Text(r.toUpperCase()),
+                    selected: isSel,
+                    onSelected: (val) {
+                      if (val) setModalState(() => targetRole = r);
+                    },
+                    selectedColor: const Color(0xFF2563EB),
+                    labelStyle: TextStyle(
+                      color: isSel ? Colors.white : const Color(0xFF334155),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Notice Title',
+                  border: OutlineInputBorder(),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: bodyController,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'Message Body',
+                  border: OutlineInputBorder(),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final title = titleController.text.trim();
+                    final body = bodyController.text.trim();
+                    if (title.isEmpty) return;
+
+                    Navigator.pop(ctx);
+
+                    await NotificationService().sendRealtimeNotification(
+                      title: title,
+                      body: body.isNotEmpty
+                          ? body
+                          : 'Official campus notification.',
+                      targetRole: targetRole,
+                      type: type,
+                      priority: priority,
+                      targetScreen: 'announcements',
+                    );
+
+                    if (!mounted) return;
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                            '🚀 Real-time alert dispatched to $targetRole!'),
+                        backgroundColor: const Color(0xFF059669),
+                      ),
+                    );
+
+                    fetchNotifications();
+                  },
+                  icon: const Icon(Icons.send_rounded, size: 16),
+                  label: const Text('Dispatch to Role in Real-Time'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   void _handleOpenTarget(Map<String, dynamic> item) {
     markAsRead(item['id']);
-    final target = (item['targetScreen'] ?? item['type'] ?? '').toString().toLowerCase();
+    final target =
+        (item['targetScreen'] ?? item['type'] ?? '').toString().toLowerCase();
 
     if (target.contains('assignment')) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const AssignmentsScreen()));
+      Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const AssignmentsScreen()));
     } else if (target.contains('announcement')) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const AnnouncementsScreen()));
+      Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const AnnouncementsScreen()));
     } else if (target.contains('exam')) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const ExaminationDetailsScreen()));
+      Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const ExaminationDetailsScreen()));
     } else if (target.contains('fee')) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const ParentFeeDetailsScreen()));
+      Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const ParentFeeDetailsScreen()));
     } else if (target.contains('attendance')) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceDetailsScreen()));
+      Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const AttendanceDetailsScreen()));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -2491,6 +2748,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         return const Color(0xFF059669);
       case 'attendance':
         return const Color(0xFF0284C7);
+      case 'system':
+        return const Color(0xFFE11D48);
       default:
         return const Color(0xFF2563EB);
     }
@@ -2508,6 +2767,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         return Icons.campaign_outlined;
       case 'attendance':
         return Icons.calendar_month_outlined;
+      case 'system':
+        return Icons.security_outlined;
       default:
         return Icons.notifications_active_outlined;
     }
@@ -2522,16 +2783,119 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }).toList();
   }
 
+  Widget _buildRoleSelectorPills() {
+    final roles = [
+      {'key': 'student', 'label': 'Student', 'icon': Icons.school_outlined},
+      {'key': 'parent', 'label': 'Parent', 'icon': Icons.family_restroom_outlined},
+      {'key': 'faculty', 'label': 'Faculty', 'icon': Icons.person_outline},
+      {'key': 'admin', 'label': 'Administrator', 'icon': Icons.admin_panel_settings_outlined},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: roles.map((r) {
+            final isSelected = activeRole == r['key'];
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 3),
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    activeRole = r['key'] as String;
+                    selectedFilter = 'All';
+                  });
+                  fetchNotifications();
+                },
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? const Color(0xFF0F172A)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        r['icon'] as IconData,
+                        size: 16,
+                        color: isSelected
+                            ? Colors.white
+                            : const Color(0xFF64748B),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        r['label'] as String,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFF334155),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
   Widget _buildHeroHeader(BoxConstraints constraints) {
     final isMobile = constraints.maxWidth < 600;
-    final unreadCount = notifications.where((n) => n['isRead'] == false).length;
+    final unreadCount =
+        notifications.where((n) => n['isRead'] == false).length;
+
+    String roleSubtitle = '';
+    switch (activeRole) {
+      case 'parent':
+        roleSubtitle =
+            'Real-time updates on your child\'s attendance, fee dues, academic progress & PTM schedules.';
+        break;
+      case 'faculty':
+        roleSubtitle =
+            'Instant alerts for assignment submissions, daily attendance lock reminders & student leaves.';
+        break;
+      case 'admin':
+        roleSubtitle =
+            'System alerts for daily fee collections, campus biometric gate sync & administrative notices.';
+        break;
+      case 'student':
+      default:
+        roleSubtitle =
+            'Get instant updates regarding your college, attendance, fees, pending tasks, assignments & exams.';
+        break;
+    }
 
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(isMobile ? 18 : 24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF3B82F6)],
+          colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF2563EB)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -2573,14 +2937,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF38BDF8).withValues(alpha: 0.2),
+                            color: const Color(0xFF38BDF8)
+                                .withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                                color: const Color(0xFF38BDF8).withValues(alpha: 0.4)),
+                                color: const Color(0xFF38BDF8)
+                                    .withValues(alpha: 0.4)),
                           ),
-                          child: const Text(
-                            'BACKGROUND & PUSH ENGINE',
-                            style: TextStyle(
+                          child: Text(
+                            'ROLE TARGETED: ${activeRole.toUpperCase()}',
+                            style: const TextStyle(
                               color: Color(0xFF38BDF8),
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
@@ -2599,7 +2965,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ),
                         const SizedBox(width: 4),
                         const Text(
-                          'Active',
+                          'Zero-Delay Realtime',
                           style: TextStyle(
                             color: Color(0xFF86EFAC),
                             fontSize: 11,
@@ -2610,7 +2976,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Campus Notifications',
+                      '${activeRole[0].toUpperCase()}${activeRole.substring(1)} Notifications',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: isMobile ? 20 : 24,
@@ -2620,9 +2986,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'You have $unreadCount unread alerts. Notifications deliver even when the app is in the background or closed.',
+                      '$unreadCount unread • $roleSubtitle',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
+                        color: Colors.white.withValues(alpha: 0.88),
                         fontSize: isMobile ? 12 : 13,
                         height: 1.4,
                       ),
@@ -2633,7 +2999,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ],
           ),
           const SizedBox(height: 18),
-          // Test Action Buttons
+          // Action Buttons
           Wrap(
             spacing: 10,
             runSpacing: 10,
@@ -2641,9 +3007,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ElevatedButton.icon(
                 onPressed: _triggerBackgroundSimulation,
                 icon: const Icon(Icons.alarm_on_rounded, size: 16),
-                label: const Text(
-                  'Simulate 5s Background Push',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                label: Text(
+                  'Simulate 5s Background Push ($activeRole)',
+                  style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2563EB),
@@ -2657,10 +3024,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ),
               ),
               OutlinedButton.icon(
-                onPressed: _triggerImmediateNotification,
-                icon: const Icon(Icons.flash_on_rounded, size: 16),
+                onPressed: _openBroadcastDialog,
+                icon: const Icon(Icons.campaign_rounded, size: 16),
                 label: const Text(
-                  'Instant Banner',
+                  'Broadcast Notice',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                 ),
                 style: OutlinedButton.styleFrom(
@@ -2682,8 +3049,106 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
+  Widget _buildInstantRoleSimulatorStrip() {
+    List<Map<String, String>> scenarios = [];
+    if (activeRole == 'student') {
+      scenarios = [
+        {'id': 'attendance', 'label': '+ Attendance Recorded (85%)'},
+        {'id': 'fee', 'label': '+ Tuition Fee Due (₹25k)'},
+        {'id': 'assignment', 'label': '+ Assignment Due (24h)'},
+        {'id': 'exam', 'label': '+ Hall Tickets Ready'},
+      ];
+    } else if (activeRole == 'parent') {
+      scenarios = [
+        {'id': 'attendance', 'label': '+ Ward Present Today'},
+        {'id': 'fee', 'label': '+ Fee Invoice Reminder'},
+        {'id': 'ptm', 'label': '+ PTM Scheduled (Sat)'},
+        {'id': 'progress', 'label': '+ 8.65 SGPA Progress'},
+      ];
+    } else if (activeRole == 'faculty') {
+      scenarios = [
+        {'id': 'submissions', 'label': '+ 35 Submissions Pending'},
+        {'id': 'attendance', 'label': '+ Daily Attendance Lock'},
+        {'id': 'leave', 'label': '+ Student Leave Request'},
+        {'id': 'meeting', 'label': '+ Curriculum Council'},
+      ];
+    } else {
+      scenarios = [
+        {'id': 'finance', 'label': '+ Daily Fee Summary (₹4.85L)'},
+        {'id': 'staff', 'label': '+ Faculty Leave Queue'},
+        {'id': 'security', 'label': '+ Gate Biometric Sync'},
+        {'id': 'broadcast', 'label': '+ Official Notice Draft'},
+      ];
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.bolt_rounded, size: 16, color: Color(0xFFF59E0B)),
+            const SizedBox(width: 4),
+            Text(
+              'Instant Real-Time Test Triggers ($activeRole):',
+              style: const TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF334155),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: scenarios.map((sc) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ActionChip(
+                  label: Text(sc['label']!),
+                  avatar: const Icon(Icons.touch_app_rounded, size: 14),
+                  backgroundColor: Colors.white,
+                  labelStyle: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF0F172A),
+                  ),
+                  side: const BorderSide(color: Color(0xFFCBD5E1)),
+                  onPressed: () {
+                    NotificationService().simulateRoleNotification(
+                      role: activeRole,
+                      scenario: sc['id']!,
+                      delaySeconds: 0,
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('⚡ Instant $activeRole alert triggered!'),
+                        duration: const Duration(seconds: 2),
+                        backgroundColor: const Color(0xFF0F172A),
+                      ),
+                    );
+                  },
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildFilterStrip() {
-    final categories = ['All', 'Unread', 'Assignments', 'Exams', 'Fees', 'Announcements'];
+    List<String> categories = ['All', 'Unread'];
+    if (activeRole == 'student') {
+      categories.addAll(['Attendance', 'Assignment', 'Fee', 'Exam']);
+    } else if (activeRole == 'parent') {
+      categories.addAll(['Attendance', 'Fee', 'Academic', 'Announcement']);
+    } else if (activeRole == 'faculty') {
+      categories.addAll(['Assignment', 'Attendance', 'System', 'Announcement']);
+    } else {
+      categories.addAll(['Fee', 'System', 'Announcement']);
+    }
 
     return Row(
       children: [
@@ -2705,7 +3170,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     selectedColor: const Color(0xFF0F172A),
                     labelStyle: TextStyle(
                       color: isSelected ? Colors.white : const Color(0xFF334155),
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.w500,
                       fontSize: 12,
                     ),
                     backgroundColor: const Color(0xFFF1F5F9),
@@ -2747,6 +3213,26 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final themeColor = _getTypeColor(type);
     final isRead = item['isRead'] == true;
     final isUrgent = item['priority'] == 'urgent';
+    final targetRole = (item['targetRole'] ?? 'all').toString().toUpperCase();
+
+    Color roleBadgeColor;
+    switch (targetRole.toLowerCase()) {
+      case 'student':
+        roleBadgeColor = const Color(0xFF0284C7);
+        break;
+      case 'parent':
+        roleBadgeColor = const Color(0xFF7C3AED);
+        break;
+      case 'faculty':
+        roleBadgeColor = const Color(0xFF059669);
+        break;
+      case 'admin':
+        roleBadgeColor = const Color(0xFFD97706);
+        break;
+      default:
+        roleBadgeColor = const Color(0xFF475569);
+        break;
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -2798,9 +3284,32 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header Row: Type pill, Priority, TimeAgo, Unread dot
-                      Row(
+                      // Header Row: Role chip, Type pill, Priority, TimeAgo, Unread dot
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 6,
+                        runSpacing: 4,
                         children: [
+                          // Role Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: roleBadgeColor.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              targetRole == 'ALL' ? 'CAMPUS-WIDE' : targetRole,
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: roleBadgeColor,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                          ),
+
+                          // Type Badge
                           Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 2),
@@ -2818,8 +3327,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               ),
                             ),
                           ),
-                          if (isUrgent) ...[
-                            const SizedBox(width: 6),
+
+                          if (isUrgent)
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 6, vertical: 2),
@@ -2830,14 +3339,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               child: const Text(
                                 'URGENT',
                                 style: TextStyle(
-                                  fontSize: 9.5,
+                                  fontSize: 9,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFFB45309),
                                 ),
                               ),
                             ),
-                          ],
-                          const Spacer(),
+
                           Text(
                             item['timeAgo'] ?? 'Recent',
                             style: TextStyle(
@@ -2846,8 +3354,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          if (!isRead) ...[
-                            const SizedBox(width: 6),
+                          if (!isRead)
                             Container(
                               width: 8,
                               height: 8,
@@ -2856,7 +3363,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 shape: BoxShape.circle,
                               ),
                             ),
-                          ],
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -2868,7 +3374,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 15,
-                          fontWeight: isRead ? FontWeight.w600 : FontWeight.bold,
+                          fontWeight:
+                              isRead ? FontWeight.w600 : FontWeight.bold,
                           color: const Color(0xFF0F172A),
                         ),
                       ),
@@ -2928,9 +3435,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           Icon(Icons.notifications_off_outlined,
               size: 44, color: Colors.grey.shade400),
           const SizedBox(height: 12),
-          const Text(
-            'No notifications found',
-            style: TextStyle(
+          Text(
+            'No $activeRole notifications found',
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Color(0xFF334155),
@@ -2938,7 +3445,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'You are completely caught up! New notices and assignment alerts will appear here.',
+            'You are completely caught up for the $activeRole role! New alerts will appear here in real-time.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
           ),
@@ -2968,15 +3475,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text(
-          'Notifications',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        title: Text(
+          '${activeRole[0].toUpperCase()}${activeRole.substring(1)} Notifications',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF0F172A),
         elevation: 0,
         centerTitle: false,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.campaign_outlined),
+            tooltip: 'Broadcast notice',
+            onPressed: _openBroadcastDialog,
+          ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Refresh feed',
@@ -3004,8 +3516,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            _buildRoleSelectorPills(),
+                            const SizedBox(height: 16),
                             _buildHeroHeader(constraints),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 16),
+                            _buildInstantRoleSimulatorStrip(),
+                            const SizedBox(height: 18),
                             _buildFilterStrip(),
                             const SizedBox(height: 16),
                             if (filtered.isEmpty)
@@ -6888,7 +7404,7 @@ class _FacultyDashboardState extends State<FacultyDashboard> {
           'Faculty Dashboard',
         ),
         actions: const [
-          NotificationBellIcon(),
+          NotificationBellIcon(role: 'faculty'),
         ],
       ),
 
@@ -8120,6 +8636,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
         title: const Text(
           'Administrator Dashboard',
         ),
+        actions: const [
+          NotificationBellIcon(role: 'admin'),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -8836,7 +9355,7 @@ class _ParentDashboardState
           'Parent Dashboard',
         ),
         actions: const [
-          NotificationBellIcon(),
+          NotificationBellIcon(role: 'parent'),
         ],
       ),
 

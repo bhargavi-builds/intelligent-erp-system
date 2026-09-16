@@ -284,35 +284,52 @@ const mockDb = {
         }
     ],
     notifications: [
+        // STUDENT NOTIFICATIONS
         {
-            id: "NOTIF001",
+            id: "NOTIF_STU_001",
             userId: "STU001",
+            targetRole: "student",
+            title: "Daily Attendance Recorded: Present",
+            body: "Your attendance for Computer Networks was recorded as Present. Current semester aggregate: 85%.",
+            type: "attendance",
+            targetScreen: "attendance",
+            priority: "normal",
+            isRead: false,
+            createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+            timeAgo: "10 mins ago"
+        },
+        {
+            id: "NOTIF_STU_002",
+            userId: "STU001",
+            targetRole: "student",
             title: "Assignment Due in 24 Hours",
-            body: "Binary Search Implementation in Data Structures is due tomorrow at 11:59 PM. Please upload your code.",
+            body: "Perceptron Implementation in Neural Networks is due tomorrow at 11:59 PM. Please upload your proofs.",
             type: "assignment",
             targetScreen: "assignments",
             priority: "urgent",
             isRead: false,
-            createdAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-            timeAgo: "25 mins ago"
+            createdAt: new Date(Date.now() - 35 * 60 * 1000).toISOString(),
+            timeAgo: "35 mins ago"
         },
         {
-            id: "NOTIF002",
+            id: "NOTIF_STU_003",
             userId: "STU001",
-            title: "Campus Placement Registration Open",
-            body: "TCS & Infosys recruitment drives are accepting student applications. Register before Friday 5:00 PM.",
-            type: "announcement",
-            targetScreen: "announcements",
+            targetRole: "student",
+            title: "Tuition Fee Due Reminder: ₹25,000",
+            body: "Second installment of odd semester tuition fee (₹25,000) is due by 30th September without penalty.",
+            type: "fee",
+            targetScreen: "fees",
             priority: "high",
             isRead: false,
             createdAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
             timeAgo: "2 hours ago"
         },
         {
-            id: "NOTIF003",
+            id: "NOTIF_STU_004",
             userId: "STU001",
-            title: "Mid-Term Examination Hall Tickets Released",
-            body: "Odd semester examination schedule is published. Verify your assigned room number and session timing.",
+            targetRole: "student",
+            title: "Semester 6 Mid-Term Hall Tickets",
+            body: "Odd semester examination schedule is published. Verify your assigned lab/room number and session timing.",
             type: "exam",
             targetScreen: "exams",
             priority: "high",
@@ -320,17 +337,182 @@ const mockDb = {
             createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
             timeAgo: "Yesterday"
         },
+
+        // PARENT NOTIFICATIONS
         {
-            id: "NOTIF004",
-            userId: "STU001",
-            title: "Tuition Fee Concession Notice",
-            body: "Merit-cum-means scholarship applications are open until August 30 at the accounts administration office.",
+            id: "NOTIF_PAR_001",
+            userId: "PAR001",
+            targetRole: "parent",
+            title: "Ward Daily Attendance: Present in All Classes",
+            body: "Bhargavi (22K91A0501) was marked Present for all 4 lectures today. Aggregate attendance: 85%.",
+            type: "attendance",
+            targetScreen: "attendance",
+            priority: "normal",
+            isRead: false,
+            createdAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+            timeAgo: "15 mins ago"
+        },
+        {
+            id: "NOTIF_PAR_002",
+            userId: "PAR001",
+            targetRole: "parent",
+            title: "Fee Reminder: ₹25,000 Balance Pending",
+            body: "Tuition installment of ₹25,000 for academic year 2025-2026 is due on 30th September. Pay online to avoid late fee.",
             type: "fee",
             targetScreen: "fees",
+            priority: "urgent",
+            isRead: false,
+            createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+            timeAgo: "45 mins ago"
+        },
+        {
+            id: "NOTIF_PAR_003",
+            userId: "PAR001",
+            targetRole: "parent",
+            title: "Parent-Teacher Meeting (PTM) Scheduled",
+            body: "Parent-Teacher Interaction will be held on Saturday 20th September at 10:00 AM in the CSE Seminar Hall.",
+            type: "announcement",
+            targetScreen: "announcements",
+            priority: "high",
+            isRead: false,
+            createdAt: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
+            timeAgo: "3 hours ago"
+        },
+        {
+            id: "NOTIF_PAR_004",
+            userId: "PAR001",
+            targetRole: "parent",
+            title: "Mid-Term Progress: 8.65 SGPA Achieved",
+            body: "Bhargavi achieved 8.65 SGPA in the recently published Semester 6 university examination results.",
+            type: "academic",
+            targetScreen: "academic",
             priority: "normal",
             isRead: true,
-            createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(),
-            timeAgo: "3 days ago"
+            createdAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(),
+            timeAgo: "2 days ago"
+        },
+
+        // FACULTY / TEACHER NOTIFICATIONS
+        {
+            id: "NOTIF_FAC_001",
+            userId: "FAC001",
+            targetRole: "faculty",
+            title: "35 Assignment Submissions Pending Review",
+            body: "35 students submitted 'Perceptron Implementation' for Neural Networks. Grade submissions before Friday.",
+            type: "assignment",
+            targetScreen: "assignments",
+            priority: "urgent",
+            isRead: false,
+            createdAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
+            timeAgo: "20 mins ago"
+        },
+        {
+            id: "NOTIF_FAC_002",
+            userId: "FAC001",
+            targetRole: "faculty",
+            title: "Daily Attendance Lock Reminder",
+            body: "Section-A attendance for CS603 Computer Networks has not been submitted. Please lock roster before 4:30 PM.",
+            type: "attendance",
+            targetScreen: "attendance",
+            priority: "high",
+            isRead: false,
+            createdAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+            timeAgo: "1 hour ago"
+        },
+        {
+            id: "NOTIF_FAC_003",
+            userId: "FAC001",
+            targetRole: "faculty",
+            title: "Student Medical Leave Request",
+            body: "Rahul (22K91A0503) submitted a medical leave application for 3 days awaiting faculty mentor sign-off.",
+            type: "system",
+            targetScreen: "dashboard",
+            priority: "normal",
+            isRead: false,
+            createdAt: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
+            timeAgo: "4 hours ago"
+        },
+        {
+            id: "NOTIF_FAC_004",
+            userId: "FAC001",
+            targetRole: "faculty",
+            title: "Department Curriculum Council Meeting",
+            body: "Board of Studies curriculum revision meeting tomorrow at 3:00 PM in Conference Hall A.",
+            type: "announcement",
+            targetScreen: "announcements",
+            priority: "normal",
+            isRead: true,
+            createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+            timeAgo: "Yesterday"
+        },
+
+        // ADMINISTRATOR NOTIFICATIONS
+        {
+            id: "NOTIF_ADM_001",
+            userId: "ADM001",
+            targetRole: "admin",
+            title: "Daily Tuition Fee Collection Summary",
+            body: "₹4,85,000 received today in semester fee settlements. Campus collection milestone reached 82%.",
+            type: "fee",
+            targetScreen: "fees",
+            priority: "high",
+            isRead: false,
+            createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+            timeAgo: "30 mins ago"
+        },
+        {
+            id: "NOTIF_ADM_002",
+            userId: "ADM001",
+            targetRole: "admin",
+            title: "Staff Leave Applications Pending Review",
+            body: "2 faculty leave applications from CSE and ECE departments are pending administrative approval.",
+            type: "system",
+            targetScreen: "dashboard",
+            priority: "normal",
+            isRead: false,
+            createdAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+            timeAgo: "2 hours ago"
+        },
+        {
+            id: "NOTIF_ADM_003",
+            userId: "ADM001",
+            targetRole: "admin",
+            title: "Biometric Campus Gate Sync Complete",
+            body: "All 6 turnstile gate scanners and biometric terminals synced successfully with the central cloud ERP.",
+            type: "system",
+            targetScreen: "dashboard",
+            priority: "normal",
+            isRead: false,
+            createdAt: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
+            timeAgo: "5 hours ago"
+        },
+        {
+            id: "NOTIF_ADM_004",
+            userId: "ADM001",
+            targetRole: "admin",
+            title: "Symposium Circular Ready for Dispatch",
+            body: "Annual National Technical Symposium circular has been reviewed and is ready for college broadcast.",
+            type: "announcement",
+            targetScreen: "announcements",
+            priority: "urgent",
+            isRead: true,
+            createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+            timeAgo: "Yesterday"
+        },
+
+        // BROADCAST NOTIFICATION (ALL ROLES)
+        {
+            id: "NOTIF_ALL_001",
+            userId: null,
+            targetRole: "all",
+            title: "Campus Placement Registration Open",
+            body: "TCS, Infosys & Wipro recruitment drives are open. Eligible candidates should register before Friday 5:00 PM.",
+            type: "announcement",
+            targetScreen: "announcements",
+            priority: "high",
+            isRead: false,
+            createdAt: new Date(Date.now() - 6 * 3600 * 1000).toISOString(),
+            timeAgo: "6 hours ago"
         }
     ],
     deviceTokens: []

@@ -164,15 +164,16 @@ CREATE TABLE fees (
     status TEXT NOT NULL CHECK (status IN ('Paid', 'Pending', 'Overdue'))
 );
 
--- 14. NOTIFICATIONS TABLE
+-- 14. NOTIFICATIONS TABLE (ROLE-BASED & REAL-TIME)
 CREATE TABLE IF NOT EXISTS notifications (
     id SERIAL PRIMARY KEY,
-    user_id TEXT,
+    user_id TEXT, -- specific student/faculty/parent/admin ID or NULL for broadcast
+    target_role TEXT NOT NULL DEFAULT 'all', -- 'all', 'student', 'parent', 'faculty', 'admin'
     title TEXT NOT NULL,
     body TEXT NOT NULL,
-    type TEXT NOT NULL DEFAULT 'general',
+    type TEXT NOT NULL DEFAULT 'general', -- 'attendance', 'fee', 'assignment', 'exam', 'announcement', 'system'
     target_screen TEXT DEFAULT 'dashboard',
-    priority TEXT NOT NULL DEFAULT 'normal',
+    priority TEXT NOT NULL DEFAULT 'normal', -- 'normal', 'high', 'urgent'
     is_read BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -181,6 +182,8 @@ CREATE TABLE IF NOT EXISTS notifications (
 CREATE TABLE IF NOT EXISTS device_tokens (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'student',
+    email TEXT,
     token TEXT UNIQUE NOT NULL,
     platform TEXT NOT NULL DEFAULT 'android',
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -259,6 +262,35 @@ INSERT INTO fees (student_id, fee_type, total_amount, paid_amount, due_date, sta
 ('STU001', 'Examination Fee', 2500.00, 2500.00, '10 August 2026', 'Paid'),
 ('STU001', 'Library & Lab Deposit', 5000.00, 5000.00, '01 June 2026', 'Paid');
 
+-- Seed Role-Based Notifications
+INSERT INTO notifications (user_id, target_role, title, body, type, target_screen, priority, is_read) VALUES
+-- Student Notifications
+('STU001', 'student', 'Attendance Recorded: Present', 'Your attendance for Computer Networks was recorded. Current aggregate: 85%.', 'attendance', 'attendance', 'normal', false),
+('STU001', 'student', 'Assignment Due in 24 Hours', 'Perceptron Implementation in Neural Networks is due tomorrow at 11:59 PM.', 'assignment', 'assignments', 'urgent', false),
+('STU001', 'student', 'Tuition Fee Due Reminder', 'Second installment of ₹25,000 is due by 30th September without late fees.', 'fee', 'fees', 'high', false),
+('STU001', 'student', 'Semester 6 Hall Tickets Released', 'Odd semester mid-term examination timetable is now active. Verify assigned room number.', 'exam', 'exams', 'high', true),
+
+-- Parent Notifications
+('PAR001', 'parent', 'Ward Daily Attendance Update', 'Bhargavi (22K91A0501) was marked Present in all 4 lecture sessions today (Overall: 85%).', 'attendance', 'attendance', 'normal', false),
+('PAR001', 'parent', 'Fee Payment Reminder: ₹25,000 Pending', 'The second installment tuition fee of ₹25,000 for academic year 2025-2026 is due soon.', 'fee', 'fees', 'urgent', false),
+('PAR001', 'parent', 'Parent-Teacher Meeting (PTM) Scheduled', 'Interactive PTM is scheduled for Saturday 20th September at 10:00 AM in CSE Block.', 'announcement', 'announcements', 'high', false),
+('PAR001', 'parent', 'Academic Performance: 8.65 SGPA', 'Bhargavi scored 8.65 SGPA with grade A+ in Data Structures in Semester 6 results.', 'academic', 'academic', 'normal', true),
+
+-- Faculty Notifications
+('FAC001', 'faculty', '35 New Assignment Submissions', '35 students submitted Neural Networks assignment "Perceptron Implementation" awaiting evaluation.', 'assignment', 'assignments', 'urgent', false),
+('FAC001', 'faculty', 'Daily Attendance Lock Reminder', 'Please finalize and lock Section-A attendance for Computer Networks before 4:30 PM.', 'attendance', 'attendance', 'high', false),
+('FAC001', 'faculty', 'Student Medical Leave Request', 'Rahul (22K91A0503) submitted a medical leave application for 3 days awaiting your approval.', 'system', 'dashboard', 'normal', false),
+('FAC001', 'faculty', 'Curriculum Committee Meeting', 'Academic council curriculum revision meeting tomorrow at 3:00 PM in Conference Hall A.', 'announcement', 'announcements', 'high', true),
+
+-- Administrator Notifications
+('ADM001', 'admin', 'Daily Fee Collection Summary', '₹4,85,000 collected today across semester fee installments. 82% target achieved.', 'fee', 'fees', 'high', false),
+('ADM001', 'admin', 'Staff Leave Approval Queue', '2 faculty leave applications are pending administrative review and approval.', 'system', 'dashboard', 'normal', false),
+('ADM001', 'admin', 'Biometric Access Server Sync', 'Server sync completed successfully across all 6 campus gate scanners and biometric units.', 'system', 'dashboard', 'normal', false),
+('ADM001', 'admin', 'Campus Broadcast Ready for Sign-Off', 'Annual technical symposium circular drafted and ready for college-wide release.', 'announcement', 'announcements', 'urgent', true),
+
+-- College-Wide Broadcast
+(NULL, 'all', 'Independence Day Celebrations Notice', 'College campus flag hoisting ceremony at 8:30 AM on 15th August. Academic classes remain closed.', 'announcement', 'announcements', 'normal', true);
+
 -- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- We enable RLS and grant public access for development
@@ -276,6 +308,8 @@ ALTER TABLE faculty ENABLE ROW LEVEL SECURITY;
 ALTER TABLE faculty_attendance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE fees ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE device_tokens ENABLE ROW LEVEL SECURITY;
 
 -- Allow anonymous / authenticated read and write for rapid development
 CREATE POLICY "Public Read Profiles" ON profiles FOR SELECT USING (true);
@@ -290,3 +324,5 @@ CREATE POLICY "Public Read Faculty" ON faculty FOR ALL USING (true);
 CREATE POLICY "Public Read FacultyAttendance" ON faculty_attendance FOR ALL USING (true);
 CREATE POLICY "Public Read Announcements" ON announcements FOR ALL USING (true);
 CREATE POLICY "Public Read Fees" ON fees FOR ALL USING (true);
+CREATE POLICY "Public Read Notifications" ON notifications FOR ALL USING (true);
+CREATE POLICY "Public Read DeviceTokens" ON device_tokens FOR ALL USING (true);
