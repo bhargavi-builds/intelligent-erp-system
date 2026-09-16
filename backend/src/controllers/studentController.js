@@ -70,22 +70,69 @@ exports.getStudentAssignments = async (req, res) => {
         if (isConfigured && supabase) {
             const { data, error } = await supabase
                 .from("assignments")
-                .select("id, title, subject, due_date, status");
+                .select("*");
 
             if (data && !error && data.length > 0) {
-                return res.json(data.map(a => ({
-                    id: a.id,
-                    title: a.title,
-                    subject: a.subject,
-                    dueDate: a.due_date,
-                    status: a.status
-                })));
+                return res.json(data.map(a => {
+                    const mockMatch = mockDb.assignments.find(m => m.id === a.id || m.title === a.title) || {};
+                    return {
+                        id: a.id,
+                        title: a.title,
+                        subject: a.subject,
+                        code: a.code || mockMatch.code || "CS301PC",
+                        faculty: a.faculty || mockMatch.faculty || "Faculty Department",
+                        dueDate: a.due_date || a.dueDate || mockMatch.dueDate,
+                        status: a.status || mockMatch.status || "Pending",
+                        points: a.points || mockMatch.points || 25,
+                        urgency: a.urgency || mockMatch.urgency || "Due Soon",
+                        description: a.description || mockMatch.description || "Complete and submit solution by deadline.",
+                        instructions: a.instructions || mockMatch.instructions || "Adhere to the rubric and test cases.",
+                        submittedDate: a.submitted_date || a.submittedDate || mockMatch.submittedDate,
+                        score: a.score || mockMatch.score,
+                        grade: a.grade || mockMatch.grade,
+                        feedback: a.feedback || mockMatch.feedback
+                    };
+                }));
             }
         }
         return res.json(mockDb.assignments);
     } catch (err) {
         console.error("Error in getStudentAssignments:", err);
         return res.json(mockDb.assignments);
+    }
+};
+
+// 3b. Submit Student Assignment
+exports.submitStudentAssignment = async (req, res) => {
+    try {
+        const { assignmentId, comments, fileName } = req.body;
+        if (!assignmentId) {
+            return res.status(400).json({ success: false, message: "assignmentId is required" });
+        }
+
+        // Update in mockDb
+        const item = mockDb.assignments.find(a => a.id === assignmentId);
+        if (item) {
+            item.status = "Completed";
+            item.submittedDate = "Just now • " + new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            item.urgency = "Submitted On Time";
+            item.submittedFile = fileName || "submission_solution.pdf";
+            item.studentComments = comments || "Submitted via ERP Portal.";
+        }
+
+        // Update student pending count
+        if (mockDb.student && mockDb.student.assignmentsPending > 0) {
+            mockDb.student.assignmentsPending -= 1;
+        }
+
+        return res.json({
+            success: true,
+            message: "Assignment submitted successfully!",
+            assignment: item || { id: assignmentId, status: "Completed" }
+        });
+    } catch (err) {
+        console.error("Error in submitStudentAssignment:", err);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
 

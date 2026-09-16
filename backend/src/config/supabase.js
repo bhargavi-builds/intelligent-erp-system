@@ -54,10 +54,61 @@ const mockDb = {
         ]
     },
     assignments: [
-        { id: "ASG001", title: "Binary Search Implementation", subject: "Data Structures", dueDate: "20 August 2026", status: "Pending" },
-        { id: "ASG002", title: "ML Classification Report", subject: "Machine Learning", dueDate: "22 August 2026", status: "Pending" },
-        { id: "ASG003", title: "TCP/IP Protocol Analysis", subject: "Computer Networks", dueDate: "25 August 2026", status: "Pending" },
-        { id: "ASG004", title: "Software Testing Case Study", subject: "Software Engineering", dueDate: "18 August 2026", status: "Completed" }
+        {
+            id: "ASG001",
+            title: "Binary Search Implementation",
+            subject: "Data Structures",
+            code: "CS301PC",
+            faculty: "Dr. Ramesh Kumar",
+            dueDate: "20 August 2026",
+            status: "Pending",
+            points: 25,
+            urgency: "Due in 2 days",
+            description: "Implement iterative and recursive binary search algorithms in C++/Java with comprehensive time and space complexity proofs.",
+            instructions: "Include unit test cases covering edge cases such as empty array, single element, negative numbers, and target-not-found scenarios."
+        },
+        {
+            id: "ASG002",
+            title: "ML Classification Report",
+            subject: "Machine Learning",
+            code: "CS702PE",
+            faculty: "Prof. Priya Nair",
+            dueDate: "22 August 2026",
+            status: "Pending",
+            points: 30,
+            urgency: "Due in 4 days",
+            description: "Train and benchmark Decision Tree and Random Forest classifiers on the provided customer churn dataset.",
+            instructions: "Report confusion matrix, ROC-AUC curve, precision-recall trade-offs, and feature importance scores in a structured PDF document."
+        },
+        {
+            id: "ASG003",
+            title: "TCP/IP Protocol Analysis",
+            subject: "Computer Networks",
+            code: "CS701PC",
+            faculty: "Dr. K. Srinivas Rao",
+            dueDate: "25 August 2026",
+            status: "Pending",
+            points: 25,
+            urgency: "Due in 7 days",
+            description: "Analyze Wireshark packet capture traces for three-way handshakes, TCP sequence numbers, retransmissions, and flow control windows.",
+            instructions: "Attach pcap export screenshots and detailed sequence number exchange timing diagrams."
+        },
+        {
+            id: "ASG004",
+            title: "Software Testing Case Study",
+            subject: "Software Engineering",
+            code: "CS503PC",
+            faculty: "Prof. Ananya Roy",
+            dueDate: "18 August 2026",
+            status: "Completed",
+            points: 25,
+            urgency: "Submitted On Time",
+            description: "Write unit and integration test suites using JUnit/PyTest for an e-commerce checkout and payment reconciliation module.",
+            submittedDate: "17 August 2026, 09:30 PM",
+            score: "24/25",
+            grade: "Grade A+",
+            feedback: "Exceptional test coverage (98%) and clear boundary value analysis. Well-documented code and edge cases handled effectively."
+        }
     ],
     exams: [
         { id: "EXM001", subject: "Machine Learning", date: "12 September 2026", time: "10:00 AM - 01:00 PM", room: "Hall 302", type: "Mid Term" },
