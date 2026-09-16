@@ -214,10 +214,74 @@ const mockDb = {
         { id: "FAC003", name: "Prof. Priya", department: "CSE", designation: "Assistant Professor", email: "priya@hitam.edu", phone: "+91 9876543212" }
     ],
     announcements: [
-        { id: 1, title: "Campus Placement Drive 2026", content: "TCS and Infosys recruitment registrations are now open for final year CSE students.", author: "Dr. Ramesh", role: "Faculty", date: "Today" },
-        { id: 2, title: "Independence Day Holiday Notice", content: "College will remain closed on 15th August on the occasion of Independence Day.", author: "Admin Office", role: "Admin", date: "Yesterday" },
-        { id: 3, title: "Mid-Semester Examination Schedule", content: "Mid-Term Examinations for 3rd and 4th year B.Tech students commence from 12th September.", author: "Examination Cell", role: "Admin", date: "3 days ago" },
-        { id: 4, title: "Fee Payment Reminder", content: "Last date for tuition fee payment for odd semester without late fee is 30th August.", author: "Accounts Dept", role: "Admin", date: "5 days ago" }
+        {
+            id: 1,
+            title: "Campus Placement Drive 2026",
+            content: "TCS and Infosys recruitment registrations are now officially open for final year CSE & ECE students. Eligible candidates must complete company profile registration on the portal before Friday 5:00 PM.",
+            message: "TCS and Infosys recruitment registrations are now officially open for final year CSE & ECE students. Eligible candidates must complete company profile registration on the portal before Friday 5:00 PM.",
+            author: "Dr. Ramesh Kumar",
+            role: "Placement Dean",
+            category: "Placements",
+            type: "Placements",
+            priority: "urgent",
+            isPinned: true,
+            department: "Training & Placements",
+            targetAudience: "Final Year B.Tech",
+            refNo: "HITAM/TPO/2026/048",
+            attachment: "TCS_Infosys_Drive_Eligibility_2026.pdf",
+            date: "Today"
+        },
+        {
+            id: 2,
+            title: "Mid-Semester Examination Schedule (Odd Sem)",
+            content: "Mid-Term Examinations for 3rd and 4th year B.Tech students will commence from 12th September 2026. Hall tickets and session timetables can be accessed from the examination tab.",
+            message: "Mid-Term Examinations for 3rd and 4th year B.Tech students will commence from 12th September 2026. Hall tickets and session timetables can be accessed from the examination tab.",
+            author: "Dr. Sharma",
+            role: "Examination Cell",
+            category: "Examinations",
+            type: "Examinations",
+            priority: "urgent",
+            isPinned: true,
+            department: "Controller of Examinations",
+            targetAudience: "3rd & 4th Year B.Tech",
+            refNo: "HITAM/EXAM/2026/102",
+            attachment: "Mid_Term_Timetable_ODD_SEM.pdf",
+            date: "Yesterday"
+        },
+        {
+            id: 3,
+            title: "Tuition Fee Payment Reminder & Concession Form",
+            content: "Last date for odd semester academic fee payment without late penalty is 30th August. Merit-based fee concession applications are also available at the accounts office.",
+            message: "Last date for odd semester academic fee payment without late penalty is 30th August. Merit-based fee concession applications are also available at the accounts office.",
+            author: "Finance Dept",
+            role: "Administration",
+            category: "Finance",
+            type: "Finance",
+            priority: "normal",
+            isPinned: false,
+            department: "Accounts & Fees",
+            targetAudience: "All Students & Parents",
+            refNo: "HITAM/ACC/2026/031",
+            attachment: "Fee_Structure_and_Payment_Challan.pdf",
+            date: "3 days ago"
+        },
+        {
+            id: 4,
+            title: "Independence Day Celebrations & Holiday Notice",
+            content: "The college campus will host the 80th Independence Day Flag Hoisting ceremony at 8:30 AM on 15th August. Academic classes will remain closed for the national holiday.",
+            message: "The college campus will host the 80th Independence Day Flag Hoisting ceremony at 8:30 AM on 15th August. Academic classes will remain closed for the national holiday.",
+            author: "Principal Office",
+            role: "Administration",
+            category: "Holiday",
+            type: "Holiday",
+            priority: "normal",
+            isPinned: false,
+            department: "Principal Office",
+            targetAudience: "All Students, Staff & Faculty",
+            refNo: "HITAM/GEN/2026/019",
+            attachment: null,
+            date: "5 days ago"
+        }
     ]
 };
 

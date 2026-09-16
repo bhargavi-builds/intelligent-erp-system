@@ -110,7 +110,10 @@ exports.getFacultyAttendance = async (req, res) => {
 // 5. Create Announcement from Faculty
 exports.createFacultyAnnouncement = async (req, res) => {
     try {
-        const { title, content, department, targetAudience } = req.body;
+        const { title, department, targetAudience } = req.body;
+        const bodyContent = req.body.content || req.body.message || "";
+        const bodyCategory = req.body.type || req.body.category || department || "General";
+
         if (!title) {
             return res.status(400).json({ error: "Title is required" });
         }
@@ -120,11 +123,11 @@ exports.createFacultyAnnouncement = async (req, res) => {
                 .from("announcements")
                 .insert([{
                     title,
-                    content: content || "",
+                    content: bodyContent,
                     author_name: "Dr. Ramesh",
                     author_role: "Faculty",
                     target_audience: targetAudience || "Students",
-                    department: department || "CSE"
+                    department: department || bodyCategory
                 }])
                 .select()
                 .single();
@@ -141,9 +144,18 @@ exports.createFacultyAnnouncement = async (req, res) => {
         const newAnn = {
             id: mockDb.announcements.length + 1,
             title,
-            content: content || "",
+            content: bodyContent,
+            message: bodyContent,
             author: "Dr. Ramesh",
             role: "Faculty",
+            category: bodyCategory,
+            type: bodyCategory,
+            priority: "normal",
+            isPinned: false,
+            department: department || "CSE",
+            targetAudience: targetAudience || "Students",
+            refNo: `HITAM/FAC/2026/0${mockDb.announcements.length + 1}`,
+            attachment: null,
             date: "Just now"
         };
         mockDb.announcements.unshift(newAnn);

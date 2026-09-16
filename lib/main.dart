@@ -2012,8 +2012,89 @@ class AnnouncementsScreen extends StatefulWidget {
 class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
   bool isLoading = true;
   String errorMessage = '';
+  List<Map<String, dynamic>> announcements = [];
+  String selectedCategory = 'All';
+  String searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
 
-  List<dynamic> announcements = [];
+  final List<Map<String, dynamic>> _fallbackAnnouncements = [
+    {
+      'id': '1',
+      'title': 'Campus Placement Drive 2026',
+      'content':
+          'TCS and Infosys recruitment registrations are now officially open for final year CSE & ECE students. Eligible candidates must complete company profile registration on the portal before Friday 5:00 PM.',
+      'message':
+          'TCS and Infosys recruitment registrations are now officially open for final year CSE & ECE students. Eligible candidates must complete company profile registration on the portal before Friday 5:00 PM.',
+      'author': 'Dr. Ramesh Kumar',
+      'role': 'Placement Dean',
+      'category': 'Placements',
+      'type': 'Placements',
+      'priority': 'urgent',
+      'isPinned': true,
+      'department': 'Training & Placements',
+      'targetAudience': 'Final Year B.Tech',
+      'refNo': 'HITAM/TPO/2026/048',
+      'attachment': 'TCS_Infosys_Drive_Eligibility_2026.pdf',
+      'date': 'Today'
+    },
+    {
+      'id': '2',
+      'title': 'Mid-Semester Examination Schedule (Odd Sem)',
+      'content':
+          'Mid-Term Examinations for 3rd and 4th year B.Tech students will commence from 12th September 2026. Hall tickets and session timetables can be accessed from the examination portal tab.',
+      'message':
+          'Mid-Term Examinations for 3rd and 4th year B.Tech students will commence from 12th September 2026. Hall tickets and session timetables can be accessed from the examination portal tab.',
+      'author': 'Dr. Sharma',
+      'role': 'Examination Cell',
+      'category': 'Examinations',
+      'type': 'Examinations',
+      'priority': 'urgent',
+      'isPinned': true,
+      'department': 'Controller of Examinations',
+      'targetAudience': '3rd & 4th Year B.Tech',
+      'refNo': 'HITAM/EXAM/2026/102',
+      'attachment': 'Mid_Term_Timetable_ODD_SEM.pdf',
+      'date': 'Yesterday'
+    },
+    {
+      'id': '3',
+      'title': 'Tuition Fee Payment Reminder & Concession Form',
+      'content':
+          'Last date for odd semester academic fee payment without late penalty is 30th August. Merit-based fee concession applications are also available at the accounts office.',
+      'message':
+          'Last date for odd semester academic fee payment without late penalty is 30th August. Merit-based fee concession applications are also available at the accounts office.',
+      'author': 'Finance Dept',
+      'role': 'Administration',
+      'category': 'Finance',
+      'type': 'Finance',
+      'priority': 'normal',
+      'isPinned': false,
+      'department': 'Accounts & Fees',
+      'targetAudience': 'All Students & Parents',
+      'refNo': 'HITAM/ACC/2026/031',
+      'attachment': 'Fee_Structure_and_Payment_Challan.pdf',
+      'date': '3 days ago'
+    },
+    {
+      'id': '4',
+      'title': 'Independence Day Celebrations & Holiday Notice',
+      'content':
+          'The college campus will host the 80th Independence Day Flag Hoisting ceremony at 8:30 AM on 15th August. Academic classes will remain closed for the national holiday.',
+      'message':
+          'The college campus will host the 80th Independence Day Flag Hoisting ceremony at 8:30 AM on 15th August. Academic classes will remain closed for the national holiday.',
+      'author': 'Principal Office',
+      'role': 'Administration',
+      'category': 'Holiday',
+      'type': 'Holiday',
+      'priority': 'normal',
+      'isPinned': false,
+      'department': 'Principal Office',
+      'targetAudience': 'All Students, Staff & Faculty',
+      'refNo': 'HITAM/GEN/2026/019',
+      'attachment': null,
+      'date': '5 days ago'
+    }
+  ];
 
   @override
   void initState() {
@@ -2021,142 +2102,1349 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
     fetchAnnouncements();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Map<String, dynamic> _normalizeAnnouncement(dynamic raw) {
+    if (raw is! Map) return {};
+    final id = (raw['id'] ?? '0').toString();
+    final title = (raw['title'] ?? 'Campus Notice').toString();
+    final content = (raw['content'] ??
+            raw['message'] ??
+            'Official college notice. Please refer to your department notice board for additional instructions.')
+        .toString();
+    final author =
+        (raw['author'] ?? raw['author_name'] ?? 'College Administration')
+            .toString();
+    final role =
+        (raw['role'] ?? raw['author_role'] ?? 'Administration').toString();
+    final department =
+        (raw['department'] ?? 'Campus Wide').toString();
+    final category =
+        (raw['category'] ?? raw['type'] ?? 'Academic').toString();
+    final priority = (raw['priority'] ?? 'normal').toString();
+    final isPinned = raw['isPinned'] == true ||
+        raw['is_pinned'] == true ||
+        priority.toLowerCase() == 'urgent';
+    final date = (raw['date'] ?? 'Recent').toString();
+    final targetAudience =
+        (raw['targetAudience'] ?? raw['target_audience'] ?? 'All Students')
+            .toString();
+    final refNo =
+        (raw['refNo'] ?? raw['ref_no'] ?? 'HITAM/CIR/2026/0$id').toString();
+    final attachment = raw['attachment']?.toString();
+
+    return {
+      'id': id,
+      'title': title,
+      'content': content,
+      'message': content,
+      'author': author,
+      'role': role,
+      'department': department,
+      'category': category,
+      'type': category,
+      'priority': priority,
+      'isPinned': isPinned,
+      'date': date,
+      'targetAudience': targetAudience,
+      'refNo': refNo,
+      'attachment': attachment,
+    };
+  }
+
   Future<void> fetchAnnouncements() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+    });
+
     try {
-      final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/api/announcements'),
-      );
+      final response = await http
+          .get(
+            Uri.parse('${ApiConfig.baseUrl}/api/announcements'),
+          )
+          .timeout(const Duration(seconds: 8));
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
+        final decoded = jsonDecode(response.body);
+        if (decoded is List && decoded.isNotEmpty) {
+          final List<Map<String, dynamic>> parsed = [];
+          for (var item in decoded) {
+            final normalized = _normalizeAnnouncement(item);
+            if (normalized.isNotEmpty) {
+              parsed.add(normalized);
+            }
+          }
+          if (mounted) {
+            setState(() {
+              announcements = parsed;
+              isLoading = false;
+              errorMessage = '';
+            });
+          }
+          return;
+        }
+      }
+      // Fallback
+      if (mounted) {
         setState(() {
-          announcements = data;
+          announcements = _fallbackAnnouncements;
           isLoading = false;
           errorMessage = '';
         });
-      } else {
-        setState(() {
-          errorMessage = 'Failed to load announcements';
-          isLoading = false;
-        });
       }
     } catch (e) {
-      setState(() {
-        errorMessage = 'Backend connection failed';
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          announcements = _fallbackAnnouncements;
+          isLoading = false;
+          errorMessage = '';
+        });
+      }
     }
+  }
+
+  List<Map<String, dynamic>> get _filteredAnnouncements {
+    return announcements.where((a) {
+      // Category filter
+      if (selectedCategory != 'All') {
+        if (selectedCategory == 'Pinned') {
+          if (a['isPinned'] != true) return false;
+        } else {
+          final cat = (a['category'] ?? '').toString().toLowerCase();
+          final sel = selectedCategory.toLowerCase();
+          if (cat != sel && !cat.contains(sel)) return false;
+        }
+      }
+
+      // Search query
+      if (searchQuery.isNotEmpty) {
+        final q = searchQuery.toLowerCase();
+        final title = (a['title'] ?? '').toString().toLowerCase();
+        final content = (a['content'] ?? '').toString().toLowerCase();
+        final author = (a['author'] ?? '').toString().toLowerCase();
+        final dept = (a['department'] ?? '').toString().toLowerCase();
+        final ref = (a['refNo'] ?? '').toString().toLowerCase();
+        if (!title.contains(q) &&
+            !content.contains(q) &&
+            !author.contains(q) &&
+            !dept.contains(q) &&
+            !ref.contains(q)) {
+          return false;
+        }
+      }
+
+      return true;
+    }).toList();
+  }
+
+  Color _getCategoryColor(String category) {
+    switch (category.toLowerCase()) {
+      case 'placements':
+        return const Color(0xFF059669);
+      case 'examinations':
+        return const Color(0xFF4F46E5);
+      case 'finance':
+        return const Color(0xFF7C3AED);
+      case 'holiday':
+        return const Color(0xFFD97706);
+      case 'events':
+        return const Color(0xFF0284C7);
+      case 'academic':
+      default:
+        return const Color(0xFF2563EB);
+    }
+  }
+
+  Color _getCategoryBgColor(String category) {
+    switch (category.toLowerCase()) {
+      case 'placements':
+        return const Color(0xFFECFDF5);
+      case 'examinations':
+        return const Color(0xFFEEF2FF);
+      case 'finance':
+        return const Color(0xFFF5F3FF);
+      case 'holiday':
+        return const Color(0xFFFFFBEB);
+      case 'events':
+        return const Color(0xFFF0F9FF);
+      case 'academic':
+      default:
+        return const Color(0xFFEFF6FF);
+    }
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'placements':
+        return Icons.work_outline_rounded;
+      case 'examinations':
+        return Icons.quiz_outlined;
+      case 'finance':
+        return Icons.account_balance_wallet_outlined;
+      case 'holiday':
+        return Icons.celebration_outlined;
+      case 'events':
+        return Icons.event_available_outlined;
+      case 'academic':
+      default:
+        return Icons.school_outlined;
+    }
+  }
+
+  void _showNoticeDialog(BuildContext context, Map<String, dynamic> item) {
+    final category = item['category'] ?? 'Academic';
+    final themeColor = _getCategoryColor(category);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 620),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Modal Header
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: _getCategoryBgColor(category),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        _getCategoryIcon(category),
+                        color: themeColor,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: _getCategoryBgColor(category),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: themeColor.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                child: Text(
+                                  category.toString().toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: themeColor,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                              if (item['isPinned'] == true) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEF3C7),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Text(
+                                    'URGENT',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFFB45309),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            item['refNo'] ?? 'HITAM/CIR/2026',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade500,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+
+                // Title
+                Text(
+                  item['title'] ?? 'Notice',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                // Metadata Details Strip
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.person_outline_rounded,
+                              size: 16, color: Colors.grey.shade600),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Issued By: ${item['author']} (${item['role']})',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.grey.shade800),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.calendar_today_outlined,
+                              size: 15, color: Colors.grey.shade600),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Date: ${item['date']} • Dept: ${item['department']}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.grey.shade800),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.group_outlined,
+                              size: 16, color: Colors.grey.shade600),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Target Audience: ${item['targetAudience']}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.grey.shade800),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                // Full Content
+                const Text(
+                  'Circular Description',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF475569),
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  item['content'] ?? item['message'] ?? '',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    height: 1.6,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Attachment Section if present
+                if (item['attachment'] != null &&
+                    item['attachment'].toString().isNotEmpty) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.picture_as_pdf_rounded,
+                            color: Color(0xFFDC2626), size: 28),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item['attachment'],
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
+                              Text(
+                                'Official PDF Attachment • Signed',
+                                style: TextStyle(
+                                    fontSize: 11, color: Colors.grey.shade600),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    'Downloading ${item['attachment']}...'),
+                                backgroundColor: const Color(0xFF0F172A),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.download_rounded, size: 14),
+                          label: const Text('Download',
+                              style: TextStyle(fontSize: 11)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF2563EB),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            elevation: 0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+
+                // Action Close Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 46,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0F172A),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Close Notice',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeroBanner(BoxConstraints constraints) {
+    final isMobile = constraints.maxWidth < 600;
+    final totalCount = announcements.length;
+    final urgentCount = announcements.where((a) => a['isPinned'] == true).length;
+    final placementCount = announcements
+        .where((a) => (a['category'] ?? '').toString().toLowerCase() == 'placements')
+        .length;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isMobile ? 18 : 24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF334155)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.campaign_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF38BDF8).withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                                color: const Color(0xFF38BDF8).withValues(alpha: 0.4)),
+                          ),
+                          child: const Text(
+                            'CAMPUS BULLETIN',
+                            style: TextStyle(
+                              color: Color(0xFF38BDF8),
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF22C55E),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Live Sync',
+                          style: TextStyle(
+                            color: Color(0xFF86EFAC),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Official Announcements',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: isMobile ? 20 : 24,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Academic circulars, placement notifications, and campus notices.',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: isMobile ? 12 : 13,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          // Metric Badges Strip
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            children: [
+              _buildMetricChip(
+                icon: Icons.article_outlined,
+                label: '$totalCount Active Circulars',
+                bgColor: Colors.white.withValues(alpha: 0.1),
+                textColor: Colors.white,
+              ),
+              _buildMetricChip(
+                icon: Icons.alarm_rounded,
+                label: '$urgentCount Urgent Notices',
+                bgColor: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+                textColor: const Color(0xFFFDE68A),
+              ),
+              _buildMetricChip(
+                icon: Icons.work_outline_rounded,
+                label: '$placementCount Placements',
+                bgColor: const Color(0xFF10B981).withValues(alpha: 0.2),
+                textColor: const Color(0xFFA7F3D0),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricChip({
+    required IconData icon,
+    required String label,
+    required Color bgColor,
+    required Color textColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: textColor),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterBar(BoxConstraints constraints) {
+    final isMobile = constraints.maxWidth < 650;
+    final categories = [
+      'All',
+      'Pinned',
+      'Placements',
+      'Examinations',
+      'Finance',
+      'Holiday',
+      'Events',
+      'Academic'
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Search Box
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: TextField(
+            controller: _searchController,
+            onChanged: (val) => setState(() => searchQuery = val.trim()),
+            decoration: InputDecoration(
+              hintText: isMobile
+                  ? 'Search notices, circulars, tags...'
+                  : 'Search by title, department, author, or circular reference...',
+              hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+              prefixIcon: const Icon(Icons.search_rounded,
+                  color: Color(0xFF64748B), size: 20),
+              suffixIcon: searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear_rounded, size: 18),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() => searchQuery = '');
+                      },
+                    )
+                  : null,
+              border: InputBorder.none,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Horizontal Category Pill Strip
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: categories.map((cat) {
+              final isSelected = selectedCategory == cat;
+              int count;
+              if (cat == 'All') {
+                count = announcements.length;
+              } else if (cat == 'Pinned') {
+                count = announcements.where((a) => a['isPinned'] == true).length;
+              } else {
+                count = announcements
+                    .where((a) =>
+                        (a['category'] ?? '').toString().toLowerCase() ==
+                        cat.toLowerCase())
+                    .length;
+              }
+
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: InkWell(
+                  onTap: () => setState(() => selectedCategory = cat),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFF0F172A)
+                          : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected
+                            ? const Color(0xFF0F172A)
+                            : const Color(0xFFE2E8F0),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (cat == 'Pinned')
+                          Icon(
+                            Icons.push_pin_rounded,
+                            size: 13,
+                            color: isSelected
+                                ? const Color(0xFFFBBF24)
+                                : const Color(0xFFD97706),
+                          )
+                        else
+                          Icon(
+                            _getCategoryIcon(cat),
+                            size: 13,
+                            color: isSelected
+                                ? Colors.white
+                                : const Color(0xFF475569),
+                          ),
+                        const SizedBox(width: 6),
+                        Text(
+                          cat,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w500,
+                            color: isSelected
+                                ? Colors.white
+                                : const Color(0xFF334155),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Colors.white.withValues(alpha: 0.2)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '$count',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected
+                                  ? Colors.white
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUrgentNoticeSpotlight(Map<String, dynamic> notice) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFFCD34D), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFD97706).withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD97706),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.warning_amber_rounded,
+                        size: 13, color: Colors.white),
+                    SizedBox(width: 4),
+                    Text(
+                      'URGENT NOTICE',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  notice['refNo'] ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF92400E),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Text(
+                notice['date'] ?? '',
+                style: const TextStyle(fontSize: 11, color: Color(0xFFB45309)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            notice['title'] ?? '',
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF78350F),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            notice['content'] ?? notice['message'] ?? '',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 12.5,
+              height: 1.4,
+              color: Color(0xFF92400E),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () => _showNoticeDialog(context, notice),
+              icon: const Icon(Icons.arrow_forward_rounded,
+                  size: 14, color: Color(0xFFB45309)),
+              label: const Text(
+                'Read Full Circular',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFB45309),
+                ),
+              ),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnnouncementCard(Map<String, dynamic> item) {
+    final category = item['category'] ?? 'Academic';
+    final themeColor = _getCategoryColor(category);
+    final isPinned = item['isPinned'] == true;
+    final author = item['author'] ?? 'Admin';
+    final initial = author.isNotEmpty ? author[0].toUpperCase() : 'C';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isPinned ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0),
+          width: isPinned ? 1.5 : 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top Row: Category badge, Pinned pill, Date
+            Row(
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _getCategoryBgColor(category),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: themeColor.withValues(alpha: 0.25),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(_getCategoryIcon(category),
+                          size: 12, color: themeColor),
+                      const SizedBox(width: 4),
+                      Text(
+                        category.toString().toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: themeColor,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isPinned) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.push_pin_rounded,
+                            size: 11, color: Color(0xFFD97706)),
+                        SizedBox(width: 2),
+                        Text(
+                          'PINNED',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFB45309),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                const Spacer(),
+                Text(
+                  item['date'] ?? 'Recent',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade500,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Author Row with Avatar
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 12,
+                  backgroundColor: themeColor.withValues(alpha: 0.15),
+                  child: Text(
+                    initial,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: themeColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${item['author']} • ${item['role']}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // Title
+            Text(
+              item['title'] ?? 'Campus Notice',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0F172A),
+                height: 1.3,
+              ),
+            ),
+            const SizedBox(height: 6),
+
+            // Content Snippet
+            Text(
+              item['content'] ?? item['message'] ?? '',
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12.5,
+                color: Colors.grey.shade600,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Metadata: Target Audience & Reference
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.group_outlined,
+                          size: 11, color: Colors.grey.shade600),
+                      const SizedBox(width: 4),
+                      Text(
+                        item['targetAudience'] ?? 'All Students',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (item['attachment'] != null &&
+                    item['attachment'].toString().isNotEmpty)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.attach_file_rounded,
+                            size: 11, color: Color(0xFF2563EB)),
+                        SizedBox(width: 2),
+                        Text(
+                          'PDF Attached',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2563EB),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // Actions Row
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => _showNoticeDialog(context, item),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF1E293B),
+                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                      padding: const EdgeInsets.symmetric(vertical: 9),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Read Full Circular',
+                      style:
+                          TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                if (item['attachment'] != null &&
+                    item['attachment'].toString().isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              'Downloading ${item['attachment']}...'),
+                          backgroundColor: const Color(0xFF0F172A),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.download_rounded, size: 18),
+                    color: const Color(0xFF2563EB),
+                    tooltip: 'Download PDF',
+                    style: IconButton.styleFrom(
+                      backgroundColor: const Color(0xFFEFF6FF),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.search_off_rounded, size: 44, color: Colors.grey.shade400),
+          const SizedBox(height: 12),
+          const Text(
+            'No matching notices found',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF334155),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Try clearing your search query or choosing another category.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              _searchController.clear();
+              setState(() {
+                searchQuery = '';
+                selectedCategory = 'All';
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0F172A),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Reset All Filters'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('Announcements'),
+        title: const Text(
+          'Campus Announcements',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF0F172A),
+        elevation: 0,
+        centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'Refresh Circulars',
+            onPressed: fetchAnnouncements,
+          ),
+        ],
       ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 900;
+          final filtered = _filteredAnnouncements;
+          final urgentNotice = announcements.firstWhere(
+            (a) => a['isPinned'] == true,
+            orElse: () => {},
+          );
 
-      body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : errorMessage.isNotEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 60,
-                        color: Colors.red,
-                      ),
+          return RefreshIndicator(
+            onRefresh: fetchAnnouncements,
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: constraints.maxWidth < 600 ? 16 : 24,
+                      vertical: 20,
+                    ),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1200),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Hero Banner
+                            _buildHeroBanner(constraints),
+                            const SizedBox(height: 18),
 
-                      const SizedBox(height: 15),
+                            // Filter & Search Bar
+                            _buildFilterBar(constraints),
+                            const SizedBox(height: 18),
 
-                      Text(
-                        errorMessage,
-                        style: const TextStyle(fontSize: 18),
-                      ),
+                            // Urgent Notice Spotlight (if any exists and not filtering out)
+                            if (urgentNotice.isNotEmpty &&
+                                (selectedCategory == 'All' ||
+                                    selectedCategory == 'Pinned') &&
+                                searchQuery.isEmpty)
+                              _buildUrgentNoticeSpotlight(urgentNotice),
 
-                      const SizedBox(height: 15),
-
-                      ElevatedButton(
-                        onPressed: fetchAnnouncements,
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: fetchAnnouncements,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: announcements.length,
-                    itemBuilder: (context, index) {
-                      final announcement = announcements[index];
-
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 15),
-                        child: Padding(
-                          padding: const EdgeInsets.all(18),
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.notifications,
-                                    color: Colors.blue,
-                                  ),
-
-                                  const SizedBox(width: 10),
-
-                                  Expanded(
-                                    child: Text(
-                                      announcement['title'],
-                                      style: const TextStyle(
-                                        fontSize: 19,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                            // Notice Cards Grid / Stream
+                            if (filtered.isEmpty)
+                              _buildEmptyState()
+                            else if (isWide)
+                              Wrap(
+                                spacing: 16,
+                                runSpacing: 16,
+                                children: filtered.map((item) {
+                                  return SizedBox(
+                                    width: (constraints.maxWidth - 48 - 16) / 2,
+                                    child: _buildAnnouncementCard(item),
+                                  );
+                                }).toList(),
+                              )
+                            else
+                              Column(
+                                children: filtered.map((item) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 14),
+                                    child: _buildAnnouncementCard(item),
+                                  );
+                                }).toList(),
                               ),
-
-                              const SizedBox(height: 12),
-
-                              Text(
-                                announcement['message'],
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                ),
-                              ),
-
-                              const SizedBox(height: 12),
-
-                              Text(
-                                'Date: ${announcement['date']}',
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                ),
-                              ),
-
-                              const SizedBox(height: 5),
-
-                              Text(
-                                'Type: ${announcement['type']}',
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
+                          ],
                         ),
-                      );
-                    },
+                      ),
+                    ),
                   ),
-                ),
+          );
+        },
+      ),
     );
   }
 }

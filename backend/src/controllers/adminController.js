@@ -160,7 +160,10 @@ exports.getAdminFaculty = async (req, res) => {
 // 6. Broadcast Announcement by Admin
 exports.createAdminAnnouncement = async (req, res) => {
     try {
-        const { title, content, targetAudience, department } = req.body;
+        const { title, targetAudience, department } = req.body;
+        const bodyContent = req.body.content || req.body.message || "";
+        const bodyCategory = req.body.type || req.body.category || department || "Administration";
+
         if (!title) {
             return res.status(400).json({ error: "Title is required" });
         }
@@ -170,11 +173,11 @@ exports.createAdminAnnouncement = async (req, res) => {
                 .from("announcements")
                 .insert([{
                     title,
-                    content: content || "",
+                    content: bodyContent,
                     author_name: "Administration",
                     author_role: "Admin",
                     target_audience: targetAudience || "All",
-                    department: department || "All"
+                    department: department || bodyCategory
                 }])
                 .select()
                 .single();
@@ -191,9 +194,18 @@ exports.createAdminAnnouncement = async (req, res) => {
         const newAnn = {
             id: mockDb.announcements.length + 1,
             title,
-            content: content || "",
+            content: bodyContent,
+            message: bodyContent,
             author: "Administration",
             role: "Admin",
+            category: bodyCategory,
+            type: bodyCategory,
+            priority: "normal",
+            isPinned: false,
+            department: department || "All",
+            targetAudience: targetAudience || "All",
+            refNo: `HITAM/ADM/2026/0${mockDb.announcements.length + 1}`,
+            attachment: null,
             date: "Just now"
         };
         mockDb.announcements.unshift(newAnn);
