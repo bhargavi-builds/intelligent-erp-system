@@ -1,19 +1,86 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'config/api_config.dart';
+import 'services/notification_service.dart';
 
-void main() {
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+  await notificationService.requestPermissions();
+
   runApp(const IntelligentERP());
 }
 
-class IntelligentERP extends StatelessWidget {
+class IntelligentERP extends StatefulWidget {
   const IntelligentERP({super.key});
+
+  @override
+  State<IntelligentERP> createState() => _IntelligentERPState();
+}
+
+class _IntelligentERPState extends State<IntelligentERP> {
+  StreamSubscription<String?>? _notificationSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _notificationSubscription =
+        NotificationService().onNotificationTap.listen((payload) {
+      if (payload == null || payload.isEmpty) return;
+      final context = appNavigatorKey.currentContext;
+      if (context == null) return;
+
+      final p = payload.toLowerCase();
+      if (p.contains('assignment')) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AssignmentsScreen()),
+        );
+      } else if (p.contains('announcement')) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AnnouncementsScreen()),
+        );
+      } else if (p.contains('exam')) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ExaminationDetailsScreen()),
+        );
+      } else if (p.contains('fee')) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ParentFeeDetailsScreen()),
+        );
+      } else if (p.contains('attendance')) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AttendanceDetailsScreen()),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _notificationSubscription?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: appNavigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Intelligent ERP',
       theme: ThemeData(
@@ -477,6 +544,9 @@ class _StudentDashboardState extends State<StudentDashboard> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Student Dashboard'),
+        actions: const [
+          NotificationBellIcon(),
+        ],
       ),
       body: isLoading
           ? const Center(
@@ -1996,6 +2066,978 @@ class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
                     ),
                   ),
                 ),
+    );
+  }
+}
+
+
+// ============================================================
+// NOTIFICATION BELL ICON WIDGET
+// ============================================================
+
+class NotificationBellIcon extends StatefulWidget {
+  const NotificationBellIcon({super.key});
+
+  @override
+  State<NotificationBellIcon> createState() => _NotificationBellIconState();
+}
+
+class _NotificationBellIconState extends State<NotificationBellIcon> {
+  int unreadCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUnreadCount();
+  }
+
+  Future<void> fetchUnreadCount() async {
+    try {
+      final res = await http
+          .get(Uri.parse('${ApiConfig.baseUrl}/api/notifications?userId=STU001'))
+          .timeout(const Duration(seconds: 4));
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (mounted) {
+          setState(() {
+            unreadCount = data['unreadCount'] ?? 0;
+          });
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          unreadCount = 2;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          IconButton(
+            tooltip: 'Campus Notifications',
+            icon: Icon(
+              unreadCount > 0
+                  ? Icons.notifications_active_rounded
+                  : Icons.notifications_outlined,
+              color: unreadCount > 0
+                  ? const Color(0xFF2563EB)
+                  : const Color(0xFF475569),
+            ),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationsScreen(),
+                ),
+              );
+              fetchUnreadCount();
+            },
+          ),
+          if (unreadCount > 0)
+            Positioned(
+              top: 6,
+              right: 6,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1.5),
+                ),
+                constraints:
+                    const BoxConstraints(minWidth: 18, minHeight: 18),
+                child: Center(
+                  child: Text(
+                    unreadCount > 9 ? '9+' : '$unreadCount',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      height: 1,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// NOTIFICATIONS SCREEN (CAMPUS BACKGROUND & PUSH ALERTS)
+// ============================================================
+
+class NotificationsScreen extends StatefulWidget {
+  const NotificationsScreen({super.key});
+
+  @override
+  State<NotificationsScreen> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends State<NotificationsScreen> {
+  bool isLoading = true;
+  String selectedFilter = 'All';
+  List<Map<String, dynamic>> notifications = [];
+
+  final List<Map<String, dynamic>> _fallbackNotifications = [
+    {
+      'id': 'NOTIF001',
+      'userId': 'STU001',
+      'title': 'Assignment Due in 24 Hours',
+      'body':
+          'Binary Search Implementation in Data Structures is due tomorrow at 11:59 PM. Please upload your code proofs.',
+      'type': 'assignment',
+      'targetScreen': 'assignments',
+      'priority': 'urgent',
+      'isRead': false,
+      'createdAt': DateTime.now()
+          .subtract(const Duration(minutes: 25))
+          .toIso8601String(),
+      'timeAgo': '25 mins ago'
+    },
+    {
+      'id': 'NOTIF002',
+      'userId': 'STU001',
+      'title': 'Campus Placement Registration Open',
+      'body':
+          'TCS & Infosys recruitment drives are accepting student applications. Register before Friday 5:00 PM.',
+      'type': 'announcement',
+      'targetScreen': 'announcements',
+      'priority': 'high',
+      'isRead': false,
+      'createdAt':
+          DateTime.now().subtract(const Duration(hours: 2)).toIso8601String(),
+      'timeAgo': '2 hours ago'
+    },
+    {
+      'id': 'NOTIF003',
+      'userId': 'STU001',
+      'title': 'Mid-Term Examination Hall Tickets Released',
+      'body':
+          'Odd semester examination schedule is published. Verify your assigned room number and session timing.',
+      'type': 'exam',
+      'targetScreen': 'exams',
+      'priority': 'high',
+      'isRead': true,
+      'createdAt':
+          DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
+      'timeAgo': 'Yesterday'
+    },
+    {
+      'id': 'NOTIF004',
+      'userId': 'STU001',
+      'title': 'Tuition Fee Concession Notice',
+      'body':
+          'Merit-cum-means scholarship applications are open until August 30 at the accounts administration office.',
+      'type': 'fee',
+      'targetScreen': 'fees',
+      'priority': 'normal',
+      'isRead': true,
+      'createdAt':
+          DateTime.now().subtract(const Duration(days: 3)).toIso8601String(),
+      'timeAgo': '3 days ago'
+    }
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchNotifications();
+  }
+
+  Map<String, dynamic> _normalizeNotification(dynamic item) {
+    if (item is! Map) return {};
+    final id = (item['id'] ?? '0').toString();
+    final title = (item['title'] ?? 'Campus Alert').toString();
+    final body = (item['body'] ??
+            item['message'] ??
+            'You have a new update from HITAM Administration.')
+        .toString();
+    final type = (item['type'] ?? 'general').toString().toLowerCase();
+    final targetScreen = (item['targetScreen'] ?? type).toString().toLowerCase();
+    final priority = (item['priority'] ?? 'normal').toString().toLowerCase();
+    final isRead = item['isRead'] == true || item['is_read'] == true;
+    final timeAgo = (item['timeAgo'] ?? 'Recent').toString();
+
+    return {
+      'id': id,
+      'userId': item['userId'] ?? item['user_id'] ?? 'STU001',
+      'title': title,
+      'body': body,
+      'type': type,
+      'targetScreen': targetScreen,
+      'priority': priority,
+      'isRead': isRead,
+      'timeAgo': timeAgo,
+    };
+  }
+
+  Future<void> fetchNotifications() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final res = await http
+          .get(Uri.parse('${ApiConfig.baseUrl}/api/notifications?userId=STU001'))
+          .timeout(const Duration(seconds: 5));
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final list = data['notifications'];
+        if (list is List && list.isNotEmpty) {
+          final List<Map<String, dynamic>> parsed = [];
+          for (var item in list) {
+            final norm = _normalizeNotification(item);
+            if (norm.isNotEmpty) parsed.add(norm);
+          }
+          if (mounted) {
+            setState(() {
+              notifications = parsed;
+              isLoading = false;
+            });
+          }
+          return;
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          notifications = _fallbackNotifications;
+          isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          notifications = _fallbackNotifications;
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> markAsRead(String id) async {
+    setState(() {
+      final item = notifications.firstWhere((n) => n['id'] == id, orElse: () => {});
+      if (item.isNotEmpty) {
+        item['isRead'] = true;
+      }
+    });
+
+    try {
+      await http.put(Uri.parse('${ApiConfig.baseUrl}/api/notifications/$id/read'));
+    } catch (_) {}
+  }
+
+  Future<void> markAllAsRead() async {
+    setState(() {
+      for (var n in notifications) {
+        n['isRead'] = true;
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('All notifications marked as read.'),
+        backgroundColor: Color(0xFF0F172A),
+      ),
+    );
+
+    try {
+      await http.put(
+        Uri.parse('${ApiConfig.baseUrl}/api/notifications/read-all'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'userId': 'STU001'}),
+      );
+    } catch (_) {}
+  }
+
+  void _triggerBackgroundSimulation() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.alarm_on_rounded, color: Color(0xFF2563EB)),
+            SizedBox(width: 8),
+            Text('Simulate Background Alert', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'This will schedule a native system tray & lockscreen push notification in 5 seconds.',
+              style: TextStyle(fontSize: 14, height: 1.4),
+            ),
+            SizedBox(height: 12),
+            Text(
+              '👉 HOW TO TEST:\n1. Click "Start 5s Countdown"\n2. Immediately press Home or minimize this app\n3. Wait 5 seconds to see the system banner alert pop up outside the app!',
+              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              NotificationService().triggerBackgroundSimulation(
+                title: '⏰ Assignment Deadline in 24 Hours',
+                body: 'Binary Search Implementation proofs are due tomorrow at 11:59 PM. Tap to submit.',
+                delaySeconds: 5,
+                payload: 'assignment',
+                type: 'assignment',
+              );
+
+              // Also persist to backend
+              http.post(
+                Uri.parse('${ApiConfig.baseUrl}/api/notifications/send'),
+                headers: {'Content-Type': 'application/json'},
+                body: jsonEncode({
+                  'title': '⏰ Assignment Deadline in 24 Hours',
+                  'body': 'Binary Search Implementation proofs are due tomorrow at 11:59 PM.',
+                  'type': 'assignment',
+                  'priority': 'urgent',
+                }),
+              );
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    '⏳ Background push scheduled in 5 seconds! Minimize the app now to see it.',
+                  ),
+                  backgroundColor: Color(0xFF2563EB),
+                  duration: Duration(seconds: 5),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Start 5s Countdown'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _triggerImmediateNotification() {
+    NotificationService().showNotification(
+      title: '🔔 HITAM Campus Alert',
+      body: 'New examination circular published by the Controller of Examinations.',
+      payload: 'exam',
+      type: 'exam',
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Instant native notification dispatched to system tray!'),
+        backgroundColor: Color(0xFF059669),
+      ),
+    );
+  }
+
+  void _handleOpenTarget(Map<String, dynamic> item) {
+    markAsRead(item['id']);
+    final target = (item['targetScreen'] ?? item['type'] ?? '').toString().toLowerCase();
+
+    if (target.contains('assignment')) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const AssignmentsScreen()));
+    } else if (target.contains('announcement')) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const AnnouncementsScreen()));
+    } else if (target.contains('exam')) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const ExaminationDetailsScreen()));
+    } else if (target.contains('fee')) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const ParentFeeDetailsScreen()));
+    } else if (target.contains('attendance')) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceDetailsScreen()));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Opening ${item['title']}'),
+          backgroundColor: const Color(0xFF0F172A),
+        ),
+      );
+    }
+  }
+
+  Color _getTypeColor(String type) {
+    switch (type.toLowerCase()) {
+      case 'assignment':
+        return const Color(0xFFF59E0B);
+      case 'exam':
+        return const Color(0xFF4F46E5);
+      case 'fee':
+        return const Color(0xFF7C3AED);
+      case 'announcement':
+        return const Color(0xFF059669);
+      case 'attendance':
+        return const Color(0xFF0284C7);
+      default:
+        return const Color(0xFF2563EB);
+    }
+  }
+
+  IconData _getTypeIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'assignment':
+        return Icons.assignment_outlined;
+      case 'exam':
+        return Icons.quiz_outlined;
+      case 'fee':
+        return Icons.account_balance_wallet_outlined;
+      case 'announcement':
+        return Icons.campaign_outlined;
+      case 'attendance':
+        return Icons.calendar_month_outlined;
+      default:
+        return Icons.notifications_active_outlined;
+    }
+  }
+
+  List<Map<String, dynamic>> get _filteredList {
+    return notifications.where((n) {
+      if (selectedFilter == 'All') return true;
+      if (selectedFilter == 'Unread') return n['isRead'] == false;
+      final t = (n['type'] ?? '').toString().toLowerCase();
+      return t.contains(selectedFilter.toLowerCase());
+    }).toList();
+  }
+
+  Widget _buildHeroHeader(BoxConstraints constraints) {
+    final isMobile = constraints.maxWidth < 600;
+    final unreadCount = notifications.where((n) => n['isRead'] == false).length;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isMobile ? 18 : 24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF3B82F6)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.notifications_active_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF38BDF8).withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                                color: const Color(0xFF38BDF8).withValues(alpha: 0.4)),
+                          ),
+                          child: const Text(
+                            'BACKGROUND & PUSH ENGINE',
+                            style: TextStyle(
+                              color: Color(0xFF38BDF8),
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF22C55E),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Active',
+                          style: TextStyle(
+                            color: Color(0xFF86EFAC),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Campus Notifications',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: isMobile ? 20 : 24,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'You have $unreadCount unread alerts. Notifications deliver even when the app is in the background or closed.',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.85),
+                        fontSize: isMobile ? 12 : 13,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          // Test Action Buttons
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              ElevatedButton.icon(
+                onPressed: _triggerBackgroundSimulation,
+                icon: const Icon(Icons.alarm_on_rounded, size: 16),
+                label: const Text(
+                  'Simulate 5s Background Push',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2563EB),
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: _triggerImmediateNotification,
+                icon: const Icon(Icons.flash_on_rounded, size: 16),
+                label: const Text(
+                  'Instant Banner',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.4),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterStrip() {
+    final categories = ['All', 'Unread', 'Assignments', 'Exams', 'Fees', 'Announcements'];
+
+    return Row(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: categories.map((cat) {
+                final isSelected = selectedFilter == cat;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text(cat),
+                    selected: isSelected,
+                    onSelected: (val) {
+                      if (val) setState(() => selectedFilter = cat);
+                    },
+                    selectedColor: const Color(0xFF0F172A),
+                    labelStyle: TextStyle(
+                      color: isSelected ? Colors.white : const Color(0xFF334155),
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                    backgroundColor: const Color(0xFFF1F5F9),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    side: BorderSide(
+                      color: isSelected
+                          ? const Color(0xFF0F172A)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+        TextButton(
+          onPressed: markAllAsRead,
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: const Text(
+            'Mark all read',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2563EB),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNotificationCard(Map<String, dynamic> item) {
+    final type = item['type'] ?? 'general';
+    final themeColor = _getTypeColor(type);
+    final isRead = item['isRead'] == true;
+    final isUrgent = item['priority'] == 'urgent';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isRead ? Colors.white : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: !isRead
+              ? const Color(0xFFBFDBFE)
+              : isUrgent
+                  ? const Color(0xFFFDE68A)
+                  : const Color(0xFFE2E8F0),
+          width: !isRead ? 1.5 : 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _handleOpenTarget(item),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Icon Avatar
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: themeColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    _getTypeIcon(type),
+                    color: themeColor,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // Content Column
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header Row: Type pill, Priority, TimeAgo, Unread dot
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: themeColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              type.toString().toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                                color: themeColor,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                          ),
+                          if (isUrgent) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFEF3C7),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'URGENT',
+                                style: TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFB45309),
+                                ),
+                              ),
+                            ),
+                          ],
+                          const Spacer(),
+                          Text(
+                            item['timeAgo'] ?? 'Recent',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade500,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (!isRead) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF2563EB),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Title
+                      Text(
+                        item['title'] ?? 'Notice',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: isRead ? FontWeight.w600 : FontWeight.bold,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+
+                      // Body
+                      Text(
+                        item['body'] ?? '',
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          height: 1.4,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Action link
+                      Row(
+                        children: [
+                          Text(
+                            'Open ${item['type'] ?? 'notice'}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: themeColor,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(Icons.arrow_forward_rounded,
+                              size: 13, color: themeColor),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.notifications_off_outlined,
+              size: 44, color: Colors.grey.shade400),
+          const SizedBox(height: 12),
+          const Text(
+            'No notifications found',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF334155),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'You are completely caught up! New notices and assignment alerts will appear here.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              setState(() => selectedFilter = 'All');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0F172A),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Show All Notifications'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filtered = _filteredList;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: const Text(
+          'Notifications',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF0F172A),
+        elevation: 0,
+        centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'Refresh feed',
+            onPressed: fetchNotifications,
+          ),
+        ],
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 850;
+
+          return RefreshIndicator(
+            onRefresh: fetchNotifications,
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: constraints.maxWidth < 600 ? 16 : 24,
+                      vertical: 20,
+                    ),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1100),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildHeroHeader(constraints),
+                            const SizedBox(height: 20),
+                            _buildFilterStrip(),
+                            const SizedBox(height: 16),
+                            if (filtered.isEmpty)
+                              _buildEmptyState()
+                            else if (isWide)
+                              Wrap(
+                                spacing: 14,
+                                runSpacing: 14,
+                                children: filtered.map((item) {
+                                  return SizedBox(
+                                    width: (constraints.maxWidth - 48 - 14) / 2,
+                                    child: _buildNotificationCard(item),
+                                  );
+                                }).toList(),
+                              )
+                            else
+                              Column(
+                                children: filtered.map((item) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: _buildNotificationCard(item),
+                                  );
+                                }).toList(),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+          );
+        },
+      ),
     );
   }
 }
@@ -5845,6 +6887,9 @@ class _FacultyDashboardState extends State<FacultyDashboard> {
         title: const Text(
           'Faculty Dashboard',
         ),
+        actions: const [
+          NotificationBellIcon(),
+        ],
       ),
 
       body: isLoading
@@ -7790,6 +8835,9 @@ class _ParentDashboardState
         title: const Text(
           'Parent Dashboard',
         ),
+        actions: const [
+          NotificationBellIcon(),
+        ],
       ),
 
       body: isLoading

@@ -282,7 +282,58 @@ const mockDb = {
             attachment: null,
             date: "5 days ago"
         }
-    ]
+    ],
+    notifications: [
+        {
+            id: "NOTIF001",
+            userId: "STU001",
+            title: "Assignment Due in 24 Hours",
+            body: "Binary Search Implementation in Data Structures is due tomorrow at 11:59 PM. Please upload your code.",
+            type: "assignment",
+            targetScreen: "assignments",
+            priority: "urgent",
+            isRead: false,
+            createdAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+            timeAgo: "25 mins ago"
+        },
+        {
+            id: "NOTIF002",
+            userId: "STU001",
+            title: "Campus Placement Registration Open",
+            body: "TCS & Infosys recruitment drives are accepting student applications. Register before Friday 5:00 PM.",
+            type: "announcement",
+            targetScreen: "announcements",
+            priority: "high",
+            isRead: false,
+            createdAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+            timeAgo: "2 hours ago"
+        },
+        {
+            id: "NOTIF003",
+            userId: "STU001",
+            title: "Mid-Term Examination Hall Tickets Released",
+            body: "Odd semester examination schedule is published. Verify your assigned room number and session timing.",
+            type: "exam",
+            targetScreen: "exams",
+            priority: "high",
+            isRead: true,
+            createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+            timeAgo: "Yesterday"
+        },
+        {
+            id: "NOTIF004",
+            userId: "STU001",
+            title: "Tuition Fee Concession Notice",
+            body: "Merit-cum-means scholarship applications are open until August 30 at the accounts administration office.",
+            type: "fee",
+            targetScreen: "fees",
+            priority: "normal",
+            isRead: true,
+            createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(),
+            timeAgo: "3 days ago"
+        }
+    ],
+    deviceTokens: []
 };
 
 module.exports = {

@@ -13,6 +13,7 @@ const facultyRoutes = require("./src/routes/facultyRoutes");
 const parentRoutes = require("./src/routes/parentRoutes");
 const adminRoutes = require("./src/routes/adminRoutes");
 const announcementRoutes = require("./src/routes/announcementRoutes");
+const notificationRoutes = require("./src/routes/notificationRoutes");
 const authRoutes = require("./src/routes/authRoutes");
 
 const app = express();
@@ -40,7 +41,8 @@ app.get("/", (req, res) => {
             faculty: "/api/faculty",
             parent: "/api/parent",
             admin: "/api/admin/summary",
-            announcements: "/api/announcements"
+            announcements: "/api/announcements",
+            notifications: "/api/notifications"
         }
     });
 });
@@ -56,6 +58,7 @@ app.use("/api/faculty", facultyRoutes);
 app.use("/api/parent", parentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/announcements", announcementRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

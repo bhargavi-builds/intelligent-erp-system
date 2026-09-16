@@ -164,6 +164,28 @@ CREATE TABLE fees (
     status TEXT NOT NULL CHECK (status IN ('Paid', 'Pending', 'Overdue'))
 );
 
+-- 14. NOTIFICATIONS TABLE
+CREATE TABLE IF NOT EXISTS notifications (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    type TEXT NOT NULL DEFAULT 'general',
+    target_screen TEXT DEFAULT 'dashboard',
+    priority TEXT NOT NULL DEFAULT 'normal',
+    is_read BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 15. DEVICE TOKENS TABLE (FCM & APNs)
+CREATE TABLE IF NOT EXISTS device_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    token TEXT UNIQUE NOT NULL,
+    platform TEXT NOT NULL DEFAULT 'android',
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- ==============================================================================
 -- SEED DATA (HITAM CAMPUS REALISTIC DATA)
 -- ==============================================================================
