@@ -129,6 +129,31 @@ exports.createAnnouncement = async (req, res) => {
         };
         mockDb.announcements.unshift(newAnn);
 
+        // Also push a real-time notification to campus (Students, Parents, Faculty)
+        if (mockDb.notifications) {
+            const audLower = (targetAudience || "All").toLowerCase();
+            let notifTarget = "all";
+            if (audLower.includes("student") && !audLower.includes("parent") && !audLower.includes("all")) notifTarget = "student";
+            else if (audLower.includes("parent") && !audLower.includes("student")) notifTarget = "parent";
+            else if (audLower.includes("faculty")) notifTarget = "faculty";
+
+            mockDb.notifications.unshift({
+                id: `NOTIF_${Date.now()}_ADM_ANN`,
+                userId: null,
+                targetRole: notifTarget,
+                senderRole: "admin",
+                senderName: authorName || "HITAM Administration",
+                type: "announcement",
+                targetScreen: "announcements",
+                priority: deducePriority(title, bodyCategory),
+                title: `College Circular: ${title}`,
+                body: bodyContent || `Official notice from ${authorName || "Administration"}.`,
+                createdAt: new Date().toISOString(),
+                timeAgo: "Just now",
+                isRead: false
+            });
+        }
+
         return res.status(201).json({
             message: "Announcement broadcasted successfully!",
             announcement: newAnn

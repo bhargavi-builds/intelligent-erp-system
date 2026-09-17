@@ -110,14 +110,60 @@ exports.submitStudentAssignment = async (req, res) => {
             return res.status(400).json({ success: false, message: "assignmentId is required" });
         }
 
-        // Update in mockDb
+        // Update in mockDb student assignments
         const item = mockDb.assignments.find(a => a.id === assignmentId);
+        const submissionTimestamp = "Just now • " + new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const finalFileName = fileName || "assignment_solution_22K91A0501.pdf";
+
         if (item) {
             item.status = "Completed";
-            item.submittedDate = "Just now • " + new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            item.submittedDate = submissionTimestamp;
             item.urgency = "Submitted On Time";
-            item.submittedFile = fileName || "submission_solution.pdf";
+            item.submittedFile = finalFileName;
             item.studentComments = comments || "Submitted via ERP Portal.";
+        }
+
+        // Synchronize with Faculty Assignments Roster
+        const facultyAsg = mockDb.facultyAssignments.find(a => a.id === assignmentId || a.title === (item ? item.title : null));
+        if (facultyAsg) {
+            if (!facultyAsg.submissions) facultyAsg.submissions = [];
+            const studentSub = facultyAsg.submissions.find(s => s.rollNo === "22K91A0501" || s.studentId === "STU001");
+            if (studentSub) {
+                studentSub.status = "Submitted";
+                studentSub.submittedAt = submissionTimestamp;
+                studentSub.fileName = finalFileName;
+                studentSub.fileSize = "1.5 MB";
+                studentSub.score = studentSub.score || null;
+                studentSub.grade = studentSub.grade || null;
+                studentSub.feedback = studentSub.feedback || null;
+            } else {
+                facultyAsg.submissions.unshift({
+                    studentId: "STU001",
+                    studentName: "Bhargavi",
+                    rollNo: "22K91A0501",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Submitted",
+                    submittedAt: submissionTimestamp,
+                    fileName: finalFileName,
+                    fileSize: "1.5 MB",
+                    score: null,
+                    grade: null,
+                    feedback: null
+                });
+            }
+        }
+
+        // Notify faculty of submission
+        if (mockDb.notifications) {
+            mockDb.notifications.unshift({
+                id: Date.now().toString(),
+                role: "faculty",
+                type: "assignment_submission",
+                title: `New Assignment Submission Received`,
+                body: `Bhargavi (22K91A0501) submitted PDF for "${item ? item.title : assignmentId}".`,
+                timestamp: new Date().toISOString(),
+                read: false
+            });
         }
 
         // Update student pending count
@@ -127,7 +173,7 @@ exports.submitStudentAssignment = async (req, res) => {
 
         return res.json({
             success: true,
-            message: "Assignment submitted successfully!",
+            message: "Assignment submitted successfully in PDF format!",
             assignment: item || { id: assignmentId, status: "Completed" }
         });
     } catch (err) {

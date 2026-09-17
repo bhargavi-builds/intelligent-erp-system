@@ -15,6 +15,7 @@ const adminRoutes = require("./src/routes/adminRoutes");
 const announcementRoutes = require("./src/routes/announcementRoutes");
 const notificationRoutes = require("./src/routes/notificationRoutes");
 const authRoutes = require("./src/routes/authRoutes");
+const { authRateLimiter, generalApiLimiter } = require("./src/middleware/authMiddleware");
 
 const app = express();
 const PORT = process.env.PORT || 5050;
@@ -25,6 +26,10 @@ app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Apply rate limiting to protect API routes
+app.use("/api/", generalApiLimiter);
+app.use("/api/auth/login", authRateLimiter);
 
 // Health / Status Route
 app.get("/", (req, res) => {

@@ -145,15 +145,297 @@ const mockDb = {
         { id: "STU004", name: "Sneha", attendance: 88, assignmentsPending: 2 }
     ],
     facultyAssignments: [
-        { id: "FA001", subject: "Neural Networks", title: "Perceptron Implementation", dueDate: "20 August 2026", submissions: 35, totalStudents: 42, status: "Active" },
-        { id: "FA002", subject: "Big Data", title: "Hadoop MapReduce Assignment", dueDate: "22 August 2026", submissions: 30, totalStudents: 42, status: "Active" },
-        { id: "FA003", subject: "Computer Networks", title: "TCP/IP Model Report", dueDate: "25 August 2026", submissions: 28, totalStudents: 42, status: "Active" }
+        {
+            id: "ASG001",
+            subject: "Data Structures",
+            code: "CS301PC",
+            title: "Binary Search Implementation",
+            faculty: "Dr. Ramesh Kumar",
+            dueDate: "20 August 2026",
+            points: 25,
+            totalStudents: 42,
+            status: "Active",
+            description: "Implement iterative and recursive binary search algorithms in C++/Java with comprehensive time and space complexity proofs.",
+            instructions: "Upload solutions strictly in PDF format. Include boundary condition test cases.",
+            submissions: [
+                {
+                    studentId: "STU001",
+                    studentName: "Bhargavi",
+                    rollNo: "22K91A0501",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Submitted",
+                    submittedAt: "19 Aug 2026, 04:30 PM",
+                    fileName: "binary_search_22K91A0501.pdf",
+                    fileSize: "1.4 MB",
+                    score: "24/25",
+                    grade: "A+",
+                    feedback: "Clean recursive formulation with comprehensive edge cases analysis."
+                },
+                {
+                    studentId: "STU002",
+                    studentName: "Anjali Sharma",
+                    rollNo: "22K91A0502",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Submitted",
+                    submittedAt: "19 Aug 2026, 11:15 AM",
+                    fileName: "binary_search_22K91A0502.pdf",
+                    fileSize: "2.1 MB",
+                    score: "23/25",
+                    grade: "A",
+                    feedback: "Well-structured unit tests."
+                },
+                {
+                    studentId: "STU004",
+                    studentName: "Sneha Reddy",
+                    rollNo: "22K91A0504",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Submitted",
+                    submittedAt: "20 Aug 2026, 09:20 AM",
+                    fileName: "binary_search_22K91A0504.pdf",
+                    fileSize: "1.8 MB",
+                    score: "25/25",
+                    grade: "O",
+                    feedback: "Outstanding asymptotic proof and clean diagrams."
+                },
+                {
+                    studentId: "STU005",
+                    studentName: "Vikram Patel",
+                    rollNo: "22K91A0505",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Submitted",
+                    submittedAt: "20 Aug 2026, 10:15 AM",
+                    fileName: "binary_search_22K91A0505.pdf",
+                    fileSize: "1.2 MB",
+                    score: null,
+                    grade: null,
+                    feedback: null
+                },
+                {
+                    studentId: "STU007",
+                    studentName: "Priya Nair",
+                    rollNo: "22K91A0507",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Submitted",
+                    submittedAt: "20 Aug 2026, 11:05 AM",
+                    fileName: "binary_search_22K91A0507.pdf",
+                    fileSize: "1.6 MB",
+                    score: null,
+                    grade: null,
+                    feedback: null
+                },
+                {
+                    studentId: "STU003",
+                    studentName: "Rahul Varma",
+                    rollNo: "22K91A0503",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Pending",
+                    submittedAt: null,
+                    fileName: null,
+                    fileSize: null,
+                    score: null,
+                    grade: null,
+                    feedback: null
+                },
+                {
+                    studentId: "STU006",
+                    studentName: "Aditya Roy",
+                    rollNo: "22K91A0506",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Pending",
+                    submittedAt: null,
+                    fileName: null,
+                    fileSize: null,
+                    score: null,
+                    grade: null,
+                    feedback: null
+                },
+                {
+                    studentId: "STU008",
+                    studentName: "Karthik Raja",
+                    rollNo: "22K91A0508",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Pending",
+                    submittedAt: null,
+                    fileName: null,
+                    fileSize: null,
+                    score: null,
+                    grade: null,
+                    feedback: null
+                }
+            ]
+        },
+        {
+            id: "ASG002",
+            subject: "Machine Learning",
+            code: "CS702PE",
+            title: "ML Classification Report",
+            faculty: "Prof. Priya Nair",
+            dueDate: "22 August 2026",
+            points: 30,
+            totalStudents: 42,
+            status: "Active",
+            description: "Train and benchmark Decision Tree and Random Forest classifiers on the customer churn dataset.",
+            instructions: "Submit comparative ROC-AUC graphs, confusion matrices and hyperparameter tuning analysis in PDF format.",
+            submissions: [
+                {
+                    studentId: "STU001",
+                    studentName: "Bhargavi",
+                    rollNo: "22K91A0501",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Submitted",
+                    submittedAt: "21 Aug 2026, 05:40 PM",
+                    fileName: "ml_classification_report_22K91A0501.pdf",
+                    fileSize: "3.2 MB",
+                    score: "29/30",
+                    grade: "O",
+                    feedback: "Impressive cross-validation methodology and ROC curve interpretation."
+                },
+                {
+                    studentId: "STU002",
+                    studentName: "Anjali Sharma",
+                    rollNo: "22K91A0502",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Submitted",
+                    submittedAt: "21 Aug 2026, 07:15 PM",
+                    fileName: "ml_classification_report_22K91A0502.pdf",
+                    fileSize: "2.7 MB",
+                    score: "27/30",
+                    grade: "A+",
+                    feedback: "Good feature selection discussion."
+                },
+                {
+                    studentId: "STU003",
+                    studentName: "Rahul Varma",
+                    rollNo: "22K91A0503",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Pending",
+                    submittedAt: null,
+                    fileName: null,
+                    fileSize: null,
+                    score: null,
+                    grade: null,
+                    feedback: null
+                },
+                {
+                    studentId: "STU004",
+                    studentName: "Sneha Reddy",
+                    rollNo: "22K91A0504",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Pending",
+                    submittedAt: null,
+                    fileName: null,
+                    fileSize: null,
+                    score: null,
+                    grade: null,
+                    feedback: null
+                }
+            ]
+        },
+        {
+            id: "ASG003",
+            subject: "Computer Networks",
+            code: "CS701PC",
+            title: "TCP/IP Protocol Analysis",
+            faculty: "Dr. K. Srinivas Rao",
+            dueDate: "25 August 2026",
+            points: 25,
+            totalStudents: 42,
+            status: "Active",
+            description: "Analyze Wireshark packet capture traces for three-way handshakes, TCP sequence numbers, and retransmissions.",
+            instructions: "Include annotated Wireshark packet captures and sequence diagrams in PDF format.",
+            submissions: [
+                {
+                    studentId: "STU002",
+                    studentName: "Anjali Sharma",
+                    rollNo: "22K91A0502",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Submitted",
+                    submittedAt: "23 Aug 2026, 03:20 PM",
+                    fileName: "tcp_analysis_22K91A0502.pdf",
+                    fileSize: "1.9 MB",
+                    score: "23/25",
+                    grade: "A",
+                    feedback: "Good packet dissection."
+                },
+                {
+                    studentId: "STU001",
+                    studentName: "Bhargavi",
+                    rollNo: "22K91A0501",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Pending",
+                    submittedAt: null,
+                    fileName: null,
+                    fileSize: null,
+                    score: null,
+                    grade: null,
+                    feedback: null
+                },
+                {
+                    studentId: "STU003",
+                    studentName: "Rahul Varma",
+                    rollNo: "22K91A0503",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Pending",
+                    submittedAt: null,
+                    fileName: null,
+                    fileSize: null,
+                    score: null,
+                    grade: null,
+                    feedback: null
+                }
+            ]
+        },
+        {
+            id: "ASG004",
+            subject: "Software Engineering",
+            code: "CS503PC",
+            title: "Software Testing Case Study",
+            faculty: "Prof. Ananya Roy",
+            dueDate: "18 August 2026",
+            points: 25,
+            totalStudents: 42,
+            status: "Completed",
+            description: "Write unit and integration test suites using JUnit/PyTest for an e-commerce checkout module.",
+            instructions: "Provide PDF report with JaCoCo / PyTest test coverage metrics and defect log.",
+            submissions: [
+                {
+                    studentId: "STU001",
+                    studentName: "Bhargavi",
+                    rollNo: "22K91A0501",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Submitted",
+                    submittedAt: "17 Aug 2026, 09:30 PM",
+                    fileName: "software_testing_case_study_22K91A0501.pdf",
+                    fileSize: "2.4 MB",
+                    score: "24/25",
+                    grade: "A+",
+                    feedback: "Exceptional test coverage (98%) and clear boundary value analysis."
+                },
+                {
+                    studentId: "STU002",
+                    studentName: "Anjali Sharma",
+                    rollNo: "22K91A0502",
+                    department: "B.Tech CSE - Sec A",
+                    status: "Submitted",
+                    submittedAt: "18 Aug 2026, 11:00 AM",
+                    fileName: "testing_study_22K91A0502.pdf",
+                    fileSize: "1.7 MB",
+                    score: "22/25",
+                    grade: "A",
+                    feedback: "Good mocking strategies."
+                }
+            ]
+        }
     ],
     facultyAttendanceList: [
-        { studentId: "STU001", studentName: "Bhargavi", rollNo: "22K91A0501", status: "Present", percentage: 85 },
-        { studentId: "STU002", studentName: "Anjali", rollNo: "22K91A0502", status: "Present", percentage: 92 },
-        { studentId: "STU003", studentName: "Rahul", rollNo: "22K91A0503", status: "Absent", percentage: 78 },
-        { studentId: "STU004", studentName: "Sneha", rollNo: "22K91A0504", status: "Present", percentage: 88 }
+        { id: "STU001", studentId: "STU001", name: "Bhargavi", studentName: "Bhargavi", rollNo: "22K91A0501", status: "Present", percentage: 85, attendance: 85, overallAttendance: 85, branch: "CSE-A" },
+        { id: "STU002", studentId: "STU002", name: "Anjali", studentName: "Anjali", rollNo: "22K91A0502", status: "Present", percentage: 92, attendance: 92, overallAttendance: 92, branch: "CSE-A" },
+        { id: "STU003", studentId: "STU003", name: "Rahul Sharma", studentName: "Rahul Sharma", rollNo: "22K91A0503", status: "Absent", percentage: 72, attendance: 72, overallAttendance: 72, branch: "CSE-A" },
+        { id: "STU004", studentId: "STU004", name: "Sneha Reddy", studentName: "Sneha Reddy", rollNo: "22K91A0504", status: "Present", percentage: 88, attendance: 88, overallAttendance: 88, branch: "CSE-A" },
+        { id: "STU005", studentId: "STU005", name: "Vikram Malhotra", studentName: "Vikram Malhotra", rollNo: "22K91A0505", status: "Present", percentage: 81, attendance: 81, overallAttendance: 81, branch: "CSE-A" },
+        { id: "STU006", studentId: "STU006", name: "Aditya Roy", studentName: "Aditya Roy", rollNo: "22K91A0506", status: "Absent", percentage: 68, attendance: 68, overallAttendance: 68, branch: "CSE-A" },
+        { id: "STU007", studentId: "STU007", name: "Priya Nair", studentName: "Priya Nair", rollNo: "22K91A0507", status: "Present", percentage: 95, attendance: 95, overallAttendance: 95, branch: "CSE-A" },
+        { id: "STU008", studentId: "STU008", name: "Karthik Raja", studentName: "Karthik Raja", rollNo: "22K91A0508", status: "Present", percentage: 79, attendance: 79, overallAttendance: 79, branch: "CSE-A" }
     ],
     parent: {
         parentName: "Mr. Narayana Rao",
@@ -284,13 +566,15 @@ const mockDb = {
         }
     ],
     notifications: [
-        // STUDENT NOTIFICATIONS
+        // STUDENT NOTIFICATIONS (FROM FACULTY & ADMINISTRATION)
         {
             id: "NOTIF_STU_001",
             userId: "STU001",
+            senderRole: "faculty",
+            senderName: "Dr. K. Srinivas Rao (Faculty)",
             targetRole: "student",
             title: "Daily Attendance Recorded: Present",
-            body: "Your attendance for Computer Networks was recorded as Present. Current semester aggregate: 85%.",
+            body: "Your attendance for Computer Networks was recorded as Present today. Semester aggregate: 85%.",
             type: "attendance",
             targetScreen: "attendance",
             priority: "normal",
@@ -301,9 +585,11 @@ const mockDb = {
         {
             id: "NOTIF_STU_002",
             userId: "STU001",
+            senderRole: "faculty",
+            senderName: "Dr. Ramesh Kumar (Faculty)",
             targetRole: "student",
             title: "Assignment Due in 24 Hours",
-            body: "Perceptron Implementation in Neural Networks is due tomorrow at 11:59 PM. Please upload your proofs.",
+            body: "Perceptron Implementation in Neural Networks is due tomorrow at 11:59 PM. Please upload your code in PDF format.",
             type: "assignment",
             targetScreen: "assignments",
             priority: "urgent",
@@ -314,9 +600,11 @@ const mockDb = {
         {
             id: "NOTIF_STU_003",
             userId: "STU001",
+            senderRole: "admin",
+            senderName: "HITAM Accounts & Finance",
             targetRole: "student",
             title: "Tuition Fee Due Reminder: ₹25,000",
-            body: "Second installment of odd semester tuition fee (₹25,000) is due by 30th September without penalty.",
+            body: "Second installment of odd semester tuition fee (₹25,000) is due by 30th September without late charges.",
             type: "fee",
             targetScreen: "fees",
             priority: "high",
@@ -327,9 +615,11 @@ const mockDb = {
         {
             id: "NOTIF_STU_004",
             userId: "STU001",
+            senderRole: "admin",
+            senderName: "Examination Cell (HITAM)",
             targetRole: "student",
-            title: "Semester 6 Mid-Term Hall Tickets",
-            body: "Odd semester examination schedule is published. Verify your assigned lab/room number and session timing.",
+            title: "Semester 6 Mid-Term Hall Tickets Released",
+            body: "Odd semester examination schedule is published. Verify your assigned room number and session timing.",
             type: "exam",
             targetScreen: "exams",
             priority: "high",
@@ -338,13 +628,15 @@ const mockDb = {
             timeAgo: "Yesterday"
         },
 
-        // PARENT NOTIFICATIONS
+        // PARENT NOTIFICATIONS (FROM FACULTY & ADMINISTRATION)
         {
             id: "NOTIF_PAR_001",
             userId: "PAR001",
+            senderRole: "faculty",
+            senderName: "Dr. K. Srinivas Rao (Faculty Mentor)",
             targetRole: "parent",
             title: "Ward Daily Attendance: Present in All Classes",
-            body: "Bhargavi (22K91A0501) was marked Present for all 4 lectures today. Aggregate attendance: 85%.",
+            body: "Bhargavi (22K91A0501) was marked Present for all scheduled lectures today. Aggregate attendance: 85%.",
             type: "attendance",
             targetScreen: "attendance",
             priority: "normal",
@@ -355,6 +647,8 @@ const mockDb = {
         {
             id: "NOTIF_PAR_002",
             userId: "PAR001",
+            senderRole: "admin",
+            senderName: "HITAM Accounts & Administration",
             targetRole: "parent",
             title: "Fee Reminder: ₹25,000 Balance Pending",
             body: "Tuition installment of ₹25,000 for academic year 2025-2026 is due on 30th September. Pay online to avoid late fee.",
@@ -368,9 +662,11 @@ const mockDb = {
         {
             id: "NOTIF_PAR_003",
             userId: "PAR001",
+            senderRole: "faculty",
+            senderName: "Dr. Ramesh Kumar (Faculty)",
             targetRole: "parent",
             title: "Parent-Teacher Meeting (PTM) Scheduled",
-            body: "Parent-Teacher Interaction will be held on Saturday 20th September at 10:00 AM in the CSE Seminar Hall.",
+            body: "Parent-Teacher Interaction session is scheduled for Saturday 20th September at 10:00 AM in the CSE Seminar Hall.",
             type: "announcement",
             targetScreen: "announcements",
             priority: "high",
@@ -381,6 +677,8 @@ const mockDb = {
         {
             id: "NOTIF_PAR_004",
             userId: "PAR001",
+            senderRole: "faculty",
+            senderName: "Dr. Ramesh Kumar (Faculty)",
             targetRole: "parent",
             title: "Mid-Term Progress: 8.65 SGPA Achieved",
             body: "Bhargavi achieved 8.65 SGPA in the recently published Semester 6 university examination results.",
@@ -392,10 +690,29 @@ const mockDb = {
             timeAgo: "2 days ago"
         },
 
-        // FACULTY / TEACHER NOTIFICATIONS
+        // BOTH STUDENTS & PARENTS (PUSHED BY FACULTY)
+        {
+            id: "NOTIF_STU_PAR_001",
+            userId: null,
+            senderRole: "faculty",
+            senderName: "Dr. Ramesh Kumar (Faculty)",
+            targetRole: "students_parents",
+            title: "Project Milestone Review & Code Submission",
+            body: "Final Capstone phase-1 demo scheduled for next Tuesday. Students must submit GitHub repos and review with mentors.",
+            type: "assignment",
+            targetScreen: "assignments",
+            priority: "high",
+            isRead: false,
+            createdAt: new Date(Date.now() - 50 * 60 * 1000).toISOString(),
+            timeAgo: "50 mins ago"
+        },
+
+        // FACULTY / TEACHER NOTIFICATIONS (FROM ADMINISTRATION & LMS)
         {
             id: "NOTIF_FAC_001",
             userId: "FAC001",
+            senderRole: "system",
+            senderName: "Academic LMS Portal",
             targetRole: "faculty",
             title: "35 Assignment Submissions Pending Review",
             body: "35 students submitted 'Perceptron Implementation' for Neural Networks. Grade submissions before Friday.",
@@ -409,9 +726,11 @@ const mockDb = {
         {
             id: "NOTIF_FAC_002",
             userId: "FAC001",
+            senderRole: "system",
+            senderName: "Attendance Portal",
             targetRole: "faculty",
             title: "Daily Attendance Lock Reminder",
-            body: "Section-A attendance for CS603 Computer Networks has not been submitted. Please lock roster before 4:30 PM.",
+            body: "Section-A attendance for CS603 Computer Networks has not been locked. Please lock roster before 4:30 PM.",
             type: "attendance",
             targetScreen: "attendance",
             priority: "high",
@@ -422,6 +741,8 @@ const mockDb = {
         {
             id: "NOTIF_FAC_003",
             userId: "FAC001",
+            senderRole: "student",
+            senderName: "Rahul Varma (Student)",
             targetRole: "faculty",
             title: "Student Medical Leave Request",
             body: "Rahul (22K91A0503) submitted a medical leave application for 3 days awaiting faculty mentor sign-off.",
@@ -435,6 +756,8 @@ const mockDb = {
         {
             id: "NOTIF_FAC_004",
             userId: "FAC001",
+            senderRole: "admin",
+            senderName: "HITAM Academic Council",
             targetRole: "faculty",
             title: "Department Curriculum Council Meeting",
             body: "Board of Studies curriculum revision meeting tomorrow at 3:00 PM in Conference Hall A.",
@@ -450,6 +773,8 @@ const mockDb = {
         {
             id: "NOTIF_ADM_001",
             userId: "ADM001",
+            senderRole: "system",
+            senderName: "ERP Payment Gateway",
             targetRole: "admin",
             title: "Daily Tuition Fee Collection Summary",
             body: "₹4,85,000 received today in semester fee settlements. Campus collection milestone reached 82%.",
@@ -463,6 +788,8 @@ const mockDb = {
         {
             id: "NOTIF_ADM_002",
             userId: "ADM001",
+            senderRole: "faculty",
+            senderName: "Dean of Faculty Affairs",
             targetRole: "admin",
             title: "Staff Leave Applications Pending Review",
             body: "2 faculty leave applications from CSE and ECE departments are pending administrative approval.",
@@ -476,6 +803,8 @@ const mockDb = {
         {
             id: "NOTIF_ADM_003",
             userId: "ADM001",
+            senderRole: "system",
+            senderName: "Campus IoT Controller",
             targetRole: "admin",
             title: "Biometric Campus Gate Sync Complete",
             body: "All 6 turnstile gate scanners and biometric terminals synced successfully with the central cloud ERP.",
@@ -489,6 +818,8 @@ const mockDb = {
         {
             id: "NOTIF_ADM_004",
             userId: "ADM001",
+            senderRole: "admin",
+            senderName: "Office of the Principal",
             targetRole: "admin",
             title: "Symposium Circular Ready for Dispatch",
             body: "Annual National Technical Symposium circular has been reviewed and is ready for college broadcast.",
@@ -500,13 +831,15 @@ const mockDb = {
             timeAgo: "Yesterday"
         },
 
-        // BROADCAST NOTIFICATION (ALL ROLES)
+        // CAMPUS-WIDE BROADCAST BY ADMINISTRATION (RECEIVED BY STUDENTS, PARENTS & FACULTY)
         {
             id: "NOTIF_ALL_001",
             userId: null,
+            senderRole: "admin",
+            senderName: "HITAM Administration",
             targetRole: "all",
             title: "Campus Placement Registration Open",
-            body: "TCS, Infosys & Wipro recruitment drives are open. Eligible candidates should register before Friday 5:00 PM.",
+            body: "TCS, Infosys & Wipro recruitment drives are open. Eligible final year candidates should register before Friday 5:00 PM.",
             type: "announcement",
             targetScreen: "announcements",
             priority: "high",

@@ -1,5 +1,19 @@
 const { supabase, isConfigured, mockDb } = require("../config/supabase");
 
+// Helper to match targetRole against active role
+function matchesRole(targetRole, userRole) {
+    if (!userRole || userRole === "all") return true;
+    if (!targetRole || targetRole === "all") return true;
+    const tr = targetRole.toLowerCase();
+    const ur = userRole.toLowerCase();
+    if (tr === ur) return true;
+    if (tr === "students_parents" || tr === "students_and_parents" || tr === "both") {
+        return ur === "student" || ur === "parent";
+    }
+    if (tr.includes(ur)) return true;
+    return false;
+}
+
 // Helper to compute human-friendly relative time
 function getRelativeTime(dateStr) {
     try {
@@ -24,6 +38,7 @@ exports.getNotifications = async (req, res) => {
         const role = (req.query.role || "all").toLowerCase();
         const userId = req.query.userId || "";
         const type = req.query.type;
+        const senderRole = (req.query.senderRole || req.query.sender || "").toLowerCase();
 
         if (isConfigured && supabase) {
             let query = supabase
@@ -32,9 +47,9 @@ exports.getNotifications = async (req, res) => {
                 .order("created_at", { ascending: false });
 
             if (role !== "all" && userId) {
-                query = query.or(`target_role.eq.${role},target_role.eq.all,user_id.eq.${userId},user_id.is.null`);
+                query = query.or(`target_role.eq.${role},target_role.eq.all,target_role.eq.students_parents,user_id.eq.${userId},user_id.is.null`);
             } else if (role !== "all") {
-                query = query.or(`target_role.eq.${role},target_role.eq.all,user_id.is.null`);
+                query = query.or(`target_role.eq.${role},target_role.eq.all,target_role.eq.students_parents,user_id.is.null`);
             } else if (userId) {
                 query = query.or(`user_id.eq.${userId},user_id.is.null`);
             }
@@ -45,10 +60,12 @@ exports.getNotifications = async (req, res) => {
 
             const { data, error } = await query;
             if (data && !error && data.length > 0) {
-                const list = data.map(n => ({
+                let list = data.map(n => ({
                     id: n.id.toString(),
                     userId: n.user_id,
                     targetRole: n.target_role || "all",
+                    senderRole: n.sender_role || (n.target_role === "faculty" ? "admin" : "faculty"),
+                    senderName: n.sender_name || (n.sender_role === "admin" ? "HITAM Administration" : "Faculty Department"),
                     title: n.title,
                     body: n.body || n.message || "",
                     type: n.type || "general",
@@ -58,6 +75,10 @@ exports.getNotifications = async (req, res) => {
                     createdAt: n.created_at,
                     timeAgo: getRelativeTime(n.created_at)
                 }));
+
+                if (senderRole && senderRole !== "all") {
+                    list = list.filter(n => n.senderRole.toLowerCase() === senderRole);
+                }
 
                 const unreadCount = list.filter(n => !n.isRead).length;
                 return res.json({
@@ -71,10 +92,10 @@ exports.getNotifications = async (req, res) => {
 
         // Fallback to in-memory store
         let list = mockDb.notifications.filter(n => {
-            const notifRole = (n.targetRole || "all").toLowerCase();
-            const matchRole = role === "all" || notifRole === "all" || notifRole === role;
+            const matchRole = matchesRole(n.targetRole, role);
             const matchUser = !userId || !n.userId || n.userId === userId;
-            return matchRole && matchUser;
+            const matchSender = !senderRole || senderRole === "all" || (n.senderRole || "").toLowerCase() === senderRole;
+            return matchRole && matchUser && matchSender;
         });
 
         if (type && type !== "All") {
@@ -102,7 +123,7 @@ exports.getNotifications = async (req, res) => {
 // 2. SEND Notification (Broadcast to Role or Specific User)
 exports.sendNotification = async (req, res) => {
     try {
-        const { title, body, message, type, targetScreen, priority, userId, targetRole } = req.body;
+        const { title, body, message, type, targetScreen, priority, userId, targetRole, senderRole, senderName } = req.body;
 
         if (!title) {
             return res.status(400).json({ error: "Notification title is required" });
@@ -114,6 +135,8 @@ exports.sendNotification = async (req, res) => {
         const notifPriority = priority || "normal";
         const role = (targetRole || "all").toLowerCase();
         const targetUserId = userId || null;
+        const sRole = (senderRole || (role === "faculty" ? "admin" : "faculty")).toLowerCase();
+        const sName = senderName || (sRole === "admin" ? "HITAM Administration" : "Dr. Ramesh Kumar (Faculty)");
         const now = new Date().toISOString();
 
         if (isConfigured && supabase) {
@@ -122,6 +145,8 @@ exports.sendNotification = async (req, res) => {
                 .insert([{
                     user_id: targetUserId,
                     target_role: role,
+                    sender_role: sRole,
+                    sender_name: sName,
                     title,
                     body: notificationContent,
                     type: notifType,
@@ -140,6 +165,8 @@ exports.sendNotification = async (req, res) => {
                         id: data.id.toString(),
                         userId: data.user_id,
                         targetRole: data.target_role,
+                        senderRole: data.sender_role || sRole,
+                        senderName: data.sender_name || sName,
                         title: data.title,
                         body: data.body,
                         type: data.type,
@@ -159,6 +186,8 @@ exports.sendNotification = async (req, res) => {
             id: `NOTIF_${Date.now()}`,
             userId: targetUserId,
             targetRole: role,
+            senderRole: sRole,
+            senderName: sName,
             title,
             body: notificationContent,
             type: notifType,
@@ -260,8 +289,7 @@ exports.pollNotifications = async (req, res) => {
         const sinceTime = since ? new Date(since).getTime() : 0;
 
         const newAlerts = mockDb.notifications.filter(n => {
-            const notifRole = (n.targetRole || "all").toLowerCase();
-            const matchRole = role === "all" || notifRole === "all" || notifRole === role;
+            const matchRole = matchesRole(n.targetRole, role);
             const matchUser = !userId || !n.userId || n.userId === userId;
             const notifTime = new Date(n.createdAt).getTime();
             return matchRole && matchUser && notifTime > sinceTime;

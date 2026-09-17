@@ -1,15 +1,77 @@
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Intelligent ERP Multi-Platform API Configuration
 /// Automatically resolves host according to target platform (Android, iOS, Web, macOS, Windows, Linux)
+/// and supports physical mobile devices over local Wi-Fi.
 class ApiConfig {
   /// Custom server override (e.g. if testing on a real physical phone over local Wi-Fi)
-  /// e.g. 'http://192.168.1.50:5050'
+  /// e.g. 'http://10.192.165.225:5050'
   static String? customBaseUrl;
 
   /// Default port for the local Express / Supabase gateway
   static const int port = 5050;
+
+  /// Default local Wi-Fi IP address of the development host machine
+  static const String defaultLocalIp = '10.192.165.225';
+
+  /// Standard network request timeout to avoid freezing on physical devices
+  static const Duration requestTimeout = Duration(seconds: 4);
+
+  /// Key for SharedPreferences
+  static const String _prefKey = 'intelligent_erp_custom_server_ip';
+
+  /// Initialize API config from local storage (called at app launch)
+  static Future<void> init() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedIp = prefs.getString(_prefKey);
+      if (savedIp != null && savedIp.trim().isNotEmpty) {
+        setCustomServerIp(savedIp.trim(), saveToPrefs: false);
+      }
+    } catch (_) {
+      // Graceful ignore if SharedPreferences is unavailable
+    }
+  }
+
+  /// Sets or clears a custom server IP or full URL
+  static Future<void> setCustomServerIp(String? hostOrUrl, {bool saveToPrefs = true}) async {
+    if (hostOrUrl == null || hostOrUrl.trim().isEmpty) {
+      customBaseUrl = null;
+      if (saveToPrefs) {
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.remove(_prefKey);
+        } catch (_) {}
+      }
+      return;
+    }
+
+    String cleaned = hostOrUrl.trim();
+    if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://')) {
+      // If port is not specified, append default port
+      if (!cleaned.contains(':')) {
+        cleaned = 'http://$cleaned:$port';
+      } else {
+        cleaned = 'http://$cleaned';
+      }
+    }
+
+    // Strip trailing slash
+    if (cleaned.endsWith('/')) {
+      cleaned = cleaned.substring(0, cleaned.length - 1);
+    }
+
+    customBaseUrl = cleaned;
+
+    if (saveToPrefs) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_prefKey, cleaned);
+      } catch (_) {}
+    }
+  }
 
   /// Dynamically resolved base URL
   static String get baseUrl {
@@ -22,14 +84,14 @@ class ApiConfig {
       return 'http://localhost:$port';
     }
 
-    // 2. Android Emulator (uses 10.0.2.2 to access host machine)
-    if (Platform.isAndroid) {
-      return 'http://10.0.2.2:$port';
+    // 2. Desktop environments (macOS, Windows, Linux)
+    if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+      return 'http://127.0.0.1:$port';
     }
 
-    // 3. iOS Simulator, macOS Desktop, Windows, Linux
-    if (Platform.isIOS || Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
-      return 'http://127.0.0.1:$port';
+    // 3. Mobile physical devices default to host Wi-Fi IP so they can reach the server
+    if (Platform.isAndroid || Platform.isIOS) {
+      return 'http://$defaultLocalIp:$port';
     }
 
     return 'http://localhost:$port';

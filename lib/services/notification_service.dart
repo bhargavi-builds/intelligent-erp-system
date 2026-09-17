@@ -483,8 +483,16 @@ class NotificationService {
     String priority = 'high',
     String targetScreen = 'announcements',
     String? userId,
+    String? senderRole,
+    String? senderName,
   }) async {
     try {
+      final sRole = senderRole ?? (_currentRole == 'admin' ? 'admin' : 'faculty');
+      final sName = senderName ??
+          (sRole == 'admin'
+              ? 'HITAM Administration'
+              : 'Dr. Ramesh Kumar (Faculty)');
+
       final response = await http.post(
         Uri.parse('${ApiConfig.baseUrl}/api/notifications'),
         headers: {'Content-Type': 'application/json'},
@@ -492,6 +500,8 @@ class NotificationService {
           'title': title,
           'body': body,
           'targetRole': targetRole.toLowerCase(),
+          'senderRole': sRole,
+          'senderName': sName,
           'type': type,
           'priority': priority,
           'targetScreen': targetScreen,
@@ -502,7 +512,13 @@ class NotificationService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Also show local notification immediately if targeting current role or all
         final normTarget = targetRole.toLowerCase();
-        if (normTarget == 'all' || normTarget == _currentRole) {
+        final bool shouldNotifyCurrent = normTarget == 'all' ||
+            normTarget == _currentRole ||
+            (normTarget.contains('student') && _currentRole == 'student') ||
+            (normTarget.contains('parent') && _currentRole == 'parent') ||
+            (normTarget.contains('faculty') && _currentRole == 'faculty');
+
+        if (shouldNotifyCurrent) {
           await showNotification(
             id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
             title: title,
