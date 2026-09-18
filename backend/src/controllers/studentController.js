@@ -197,7 +197,8 @@ exports.getStudentExams = async (req, res) => {
                     date: e.exam_date,
                     time: e.exam_time,
                     room: e.room,
-                    type: e.exam_type
+                    venue: e.room || "Hall 302",
+                    type: e.exam_type || "Mid Term"
                 })));
             }
         }

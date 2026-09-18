@@ -111,8 +111,11 @@ const mockDb = {
         }
     ],
     exams: [
-        { id: "EXM001", subject: "Machine Learning", date: "12 September 2026", time: "10:00 AM - 01:00 PM", room: "Hall 302", type: "Mid Term" },
-        { id: "EXM002", subject: "Computer Networks", date: "15 September 2026", time: "02:00 PM - 05:00 PM", room: "Lab 2", type: "Lab Exam" }
+        { id: "EXM001", subject: "Machine Learning", date: "12 September 2026", time: "10:00 AM - 01:00 PM", room: "Hall 302", venue: "Hall 302 (Block B, 3rd Floor)", type: "Mid Term", code: "CS602", maxMarks: 75, status: "Upcoming", duration: "3 Hours", seat: "B2-14" },
+        { id: "EXM002", subject: "Computer Networks", date: "15 September 2026", time: "02:00 PM - 05:00 PM", room: "Lab 2", venue: "Lab 2 (Networking Lab, Block C)", type: "Lab Exam", code: "CS603", maxMarks: 50, status: "Upcoming", duration: "3 Hours", seat: "C3-08" },
+        { id: "EXM003", subject: "Software Engineering & Agile", date: "18 September 2026", time: "10:00 AM - 01:00 PM", room: "Auditorium Hall A", venue: "Auditorium Hall A (Main Campus)", type: "Mid Term", code: "CS604", maxMarks: 75, status: "Upcoming", duration: "3 Hours", seat: "A1-22" },
+        { id: "EXM004", subject: "Cloud Computing & DevOps Lab", date: "22 September 2026", time: "09:30 AM - 12:30 PM", room: "Cloud Lab 1", venue: "Cloud Lab 1 (Tech Center, 2nd Floor)", type: "Lab Exam", code: "CS605", maxMarks: 50, status: "Upcoming", duration: "3 Hours", seat: "TC-05" },
+        { id: "EXM005", subject: "Data Structures & Algorithms", date: "26 September 2026", time: "10:00 AM - 01:00 PM", room: "Hall 101", venue: "Hall 101 (Examinations Wing)", type: "End Semester", code: "CS601", maxMarks: 100, status: "Upcoming", duration: "3 Hours", seat: "EW-31" }
     ],
     results: [
         {
