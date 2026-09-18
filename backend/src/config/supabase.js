@@ -126,6 +126,30 @@ const mockDb = {
                 { code: "CS604", name: "Software Engineering", grade: "A+", credits: 3, status: "Pass" },
                 { code: "CS605", name: "Cloud Computing Lab", grade: "O", credits: 2, status: "Pass" }
             ]
+        },
+        {
+            semester: "Semester 5",
+            gpa: 8.40,
+            cgpa: 8.38,
+            subjects: [
+                { code: "CS501", name: "Design & Analysis of Algorithms", grade: "A+", credits: 4, status: "Pass" },
+                { code: "CS502", name: "Database Management Systems", grade: "O", credits: 4, status: "Pass" },
+                { code: "CS503", name: "Operating Systems", grade: "A", credits: 3, status: "Pass" },
+                { code: "CS504", name: "Formal Languages & Automata", grade: "B+", credits: 3, status: "Pass" },
+                { code: "CS505", name: "DBMS & OS Virtual Lab", grade: "O", credits: 2, status: "Pass" }
+            ]
+        },
+        {
+            semester: "Semester 4",
+            gpa: 8.50,
+            cgpa: 8.36,
+            subjects: [
+                { code: "CS401", name: "Computer Organization & Arch", grade: "A", credits: 4, status: "Pass" },
+                { code: "CS402", name: "Java & OOP Systems", grade: "O", credits: 4, status: "Pass" },
+                { code: "CS403", name: "Discrete Mathematical Structures", grade: "A+", credits: 3, status: "Pass" },
+                { code: "CS404", name: "Environmental Engineering", grade: "A", credits: 2, status: "Pass" },
+                { code: "CS405", name: "Java Programming Laboratory", grade: "O", credits: 2, status: "Pass" }
+            ]
         }
     ],
     faculty: {

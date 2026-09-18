@@ -212,24 +212,28 @@ exports.getStudentExams = async (req, res) => {
 exports.getStudentResults = async (req, res) => {
     try {
         if (isConfigured && supabase) {
-            const { data: resultsData, error: resultsError } = await supabase
+            const { data: resultsList, error: resultsError } = await supabase
                 .from("results")
                 .select("id, semester, gpa, cgpa")
                 .eq("student_id", "STU001")
-                .single();
+                .order("id", { ascending: false });
 
-            if (resultsData && !resultsError) {
-                const { data: subjectsData } = await supabase
-                    .from("result_subjects")
-                    .select("code, name, grade, credits, status")
-                    .eq("result_id", resultsData.id);
-
-                return res.json([{
-                    semester: resultsData.semester,
-                    gpa: Number(resultsData.gpa),
-                    cgpa: Number(resultsData.cgpa),
-                    subjects: subjectsData || []
-                }]);
+            if (resultsList && !resultsError && resultsList.length > 0) {
+                const fullResults = await Promise.all(
+                    resultsList.map(async (r) => {
+                        const { data: subjectsData } = await supabase
+                            .from("result_subjects")
+                            .select("code, name, grade, credits, status")
+                            .eq("result_id", r.id);
+                        return {
+                            semester: r.semester,
+                            gpa: Number(r.gpa),
+                            cgpa: Number(r.cgpa),
+                            subjects: subjectsData || []
+                        };
+                    })
+                );
+                return res.json(fullResults);
             }
         }
         return res.json(mockDb.results);
