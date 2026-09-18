@@ -1,26 +1,26 @@
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Intelligent ERP Multi-Platform API Configuration
 /// Automatically resolves host according to target platform (Android, iOS, Web, macOS, Windows, Linux)
 /// and supports physical mobile devices over local Wi-Fi.
 class ApiConfig {
-  /// Custom server override (e.g. if testing on a real physical phone over local Wi-Fi)
-  /// e.g. 'http://10.192.165.225:5050'
+  /// Custom server override (e.g. if developer wants to test on a local IP)
   static String? customBaseUrl;
 
-  /// Default port for the local Express / Supabase gateway
+  /// Default port for the local Express gateway if testing locally
   static const int port = 5050;
 
-  /// Default local Wi-Fi IP address of the development host machine
+  /// Live production cloud backend hosted on Render
+  static const String defaultCloudUrl = 'https://hitamerp.onrender.com';
+
+  /// Default local Wi-Fi IP address of the development host machine (fallback)
   static const String defaultLocalIp = '10.192.165.225';
 
-  /// Standard network request timeout to avoid freezing on physical devices
-  static const Duration requestTimeout = Duration(seconds: 4);
+  /// Standard network request timeout (15s to handle Render free-tier cold starts)
+  static const Duration requestTimeout = Duration(seconds: 15);
 
   /// Key for SharedPreferences
-  static const String _prefKey = 'intelligent_erp_custom_server_ip';
+  static const String _prefKey = 'intelligent_erp_custom_server_ip_v2';
 
   /// Initialize API config from local storage (called at app launch)
   static Future<void> init() async {
@@ -79,22 +79,8 @@ class ApiConfig {
       return customBaseUrl!;
     }
 
-    // 1. Web Browser
-    if (kIsWeb) {
-      return 'http://localhost:$port';
-    }
-
-    // 2. Desktop environments (macOS, Windows, Linux)
-    if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
-      return 'http://127.0.0.1:$port';
-    }
-
-    // 3. Mobile physical devices default to host Wi-Fi IP so they can reach the server
-    if (Platform.isAndroid || Platform.isIOS) {
-      return 'http://$defaultLocalIp:$port';
-    }
-
-    return 'http://localhost:$port';
+    // Default to the live Render cloud deployment so anyone around the world can use the app!
+    return defaultCloudUrl;
   }
 
   // Helper Endpoints
