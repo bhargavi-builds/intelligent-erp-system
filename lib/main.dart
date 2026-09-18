@@ -15405,9 +15405,11 @@ class _ParentFeeDetailsScreenState
                 ),
               ),
             ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 6,
               children: [
                 Text(
                   'Paid ₹${_formatRupees(paidFee)} of ₹${_formatRupees(totalFee)}',
